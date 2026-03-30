@@ -1,9 +1,20 @@
-# Validación de datos que entran y salen por la API
-# Son clases Pydantic que definen qué datos acepta un endpoint y 
-# qué datos devuelve. No tienen nada que ver con la BD directamente.
+from datetime import datetime
 
-# Pydantic es una librería de Python que se encarga de validar y 
-# transformar datos automáticamente.
-# La idea central es simple: vos definís una clase que describe la 
-# forma que deben tener tus datos, y Pydantic se asegura de que lo que 
-# llegue cumpla con esa forma. Si no cumple, lanza un error automáticamente.
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+
+class UserBase(BaseModel):
+	email: EmailStr
+	full_name: str | None = None
+
+
+class UserCreate(UserBase):
+	pass
+
+
+class UserRead(UserBase):
+	id: int
+	is_active: bool
+	created_at: datetime
+
+	model_config = ConfigDict(from_attributes=True)
