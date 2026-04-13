@@ -21,10 +21,10 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     email: Mapped[str] = mapped_column(String(200), nullable=False, unique=True)
     job_title: Mapped[str | None] = mapped_column(String(150), nullable=True)
-    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole, native_enum=False), nullable=False)
+    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole, native_enum=False, create_constraint=True, name="ck_users_role"), nullable=False)
     company_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("companies.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True, server_default=text("now()")
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
     )

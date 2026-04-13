@@ -18,12 +18,12 @@ class Evaluation(Base):
         server_default=text("gen_random_uuid()"),
     )
     company_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
-    status: Mapped[EvaluationStatus] = mapped_column(SAEnum(EvaluationStatus, native_enum=False), nullable=False, server_default=text("'draft'"))
+    status: Mapped[EvaluationStatus] = mapped_column(SAEnum(EvaluationStatus, native_enum=False, create_constraint=True, name="ck_evaluations_status"), nullable=False, server_default=text("'draft'"))
     last_group_id: Mapped[str | None] = mapped_column(String(10), ForeignKey("control_groups.id"), nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True, server_default=text("now()")
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
 
 
@@ -41,9 +41,9 @@ class Response(Base):
     answer: Mapped[bool] = mapped_column(Boolean, nullable=False)
     observations: Mapped[str | None] = mapped_column(Text, nullable=True)
     answered_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True, server_default=text("now()")
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
-    verdict: Mapped[ResponseVerdict | None] = mapped_column(SAEnum(ResponseVerdict, native_enum=False), nullable=True)
+    verdict: Mapped[ResponseVerdict | None] = mapped_column(SAEnum(ResponseVerdict, native_enum=False, create_constraint=True, name="ck_responses_verdict"), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -60,5 +60,5 @@ class Evidence(Base):
     file_name: Mapped[str] = mapped_column(String(300), nullable=False)
     file_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True, server_default=text("now()")
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
