@@ -78,7 +78,7 @@ def upgrade() -> None:
         sa.Column("employee_range_id", sa.SmallInteger(), sa.ForeignKey("employee_ranges.id"), nullable=False),
         sa.Column("district_id", sa.SmallInteger(), sa.ForeignKey("districts.id"), nullable=False),
         sa.Column("branch_count", sa.SmallInteger(), nullable=False, server_default=sa.text("0")),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.UniqueConstraint("name", name="uq_companies_name"),
     )
 
@@ -97,7 +97,7 @@ def upgrade() -> None:
         sa.Column("job_title", sa.String(150), nullable=True),
         sa.Column("role", sa.Enum(UserRole, native_enum=False, create_constraint=True, name="ck_users_role"), nullable=False),
         sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id"), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.UniqueConstraint("email", name="uq_users_email"),
         sa.UniqueConstraint("company_id", name="uq_users_company_id"),
     )
@@ -116,7 +116,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("email", sa.String(200), nullable=False),
         sa.Column("job_title", sa.String(150), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
 
     # ── Catálogo de controles ────────────────────────────────────
@@ -149,7 +149,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column("control_id", sa.String(20), sa.ForeignKey("controls.id"), nullable=False),
         sa.Column("standard_id", sa.Integer(), sa.ForeignKey("standards.id"), nullable=False),
-        sa.Column("ref_code", sa.String(50), nullable=False),
+        sa.Column("ref_code", sa.String(100), nullable=False),
         sa.UniqueConstraint("control_id", "standard_id", "ref_code", name="uq_control_standard_ref"),
     )
 
@@ -168,7 +168,7 @@ def upgrade() -> None:
         sa.Column("last_group_id", sa.String(10), sa.ForeignKey("control_groups.id"), nullable=True),
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
 
     # ── Respuestas ───────────────────────────────────────────────
@@ -185,7 +185,7 @@ def upgrade() -> None:
         sa.Column("control_id", sa.String(20), sa.ForeignKey("controls.id"), nullable=False),
         sa.Column("answer", sa.Boolean(), nullable=False),
         sa.Column("observations", sa.Text(), nullable=True),
-        sa.Column("answered_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
+        sa.Column("answered_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.Column("verdict", sa.Enum(ResponseVerdict, native_enum=False, create_constraint=True, name="ck_responses_verdict"), nullable=True),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("evaluation_id", "control_id", name="uq_responses_evaluation_control"),
@@ -205,7 +205,7 @@ def upgrade() -> None:
         sa.Column("file_path", sa.Text(), nullable=False),
         sa.Column("file_name", sa.String(300), nullable=False),
         sa.Column("file_type", sa.String(100), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
 
 

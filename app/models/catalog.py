@@ -51,4 +51,4 @@ class ControlStandardRef(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     control_id: Mapped[str] = mapped_column(String(20), ForeignKey("controls.id"), nullable=False)
     standard_id: Mapped[int] = mapped_column(Integer, ForeignKey("standards.id"), nullable=False)
-    ref_code: Mapped[str] = mapped_column(String(50), nullable=False)
+    ref_code: Mapped[str] = mapped_column(String(100), nullable=False)
