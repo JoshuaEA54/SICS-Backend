@@ -1,6 +1,7 @@
-from sqlalchemy import ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
+from sqlalchemy import Enum as SAEnum, ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.core.enums import ControlCriticality
 from app.db.base import Base
 
 
@@ -24,7 +25,7 @@ class ControlGroup(Base):
     id: Mapped[str] = mapped_column(String(10), primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    criticality: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    criticality: Mapped[ControlCriticality | None] = mapped_column(SAEnum(ControlCriticality, native_enum=False), nullable=True)
 
 
 class Control(Base):

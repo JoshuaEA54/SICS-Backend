@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.core.enums import EvaluationStatus, ResponseVerdict
 from app.db.base import Base
 
 
@@ -17,7 +18,7 @@ class Evaluation(Base):
         server_default=text("gen_random_uuid()"),
     )
     company_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'draft'"))
+    status: Mapped[EvaluationStatus] = mapped_column(SAEnum(EvaluationStatus, native_enum=False), nullable=False, server_default=text("'draft'"))
     last_group_id: Mapped[str | None] = mapped_column(String(10), ForeignKey("control_groups.id"), nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -42,7 +43,7 @@ class Response(Base):
     answered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True, server_default=text("now()")
     )
-    verdict: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    verdict: Mapped[ResponseVerdict | None] = mapped_column(SAEnum(ResponseVerdict, native_enum=False), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 

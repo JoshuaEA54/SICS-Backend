@@ -12,6 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from app.core.enums import ControlCriticality, EvaluationStatus, ResponseVerdict, UserRole
+
 # revision identifiers, used by Alembic.
 revision: str = "20260329_0001"
 down_revision: str | None = None
@@ -93,15 +95,11 @@ def upgrade() -> None:
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("email", sa.String(200), nullable=False),
         sa.Column("job_title", sa.String(150), nullable=True),
-        sa.Column("role", sa.String(20), nullable=False),
+        sa.Column("role", sa.Enum(UserRole, native_enum=False), nullable=False),
         sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id"), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
         sa.UniqueConstraint("email", name="uq_users_email"),
         sa.UniqueConstraint("company_id", name="uq_users_company_id"),
-    )
-    op.create_index(
-        "uq_single_expert", "users", ["role"], unique=True,
-        postgresql_where=sa.text("role = 'expert'"),
     )
 
     # ── Contactos ────────────────────────────────────────────────
@@ -128,7 +126,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(10), primary_key=True),
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("criticality", sa.String(10), nullable=True),
+        sa.Column("criticality", sa.Enum(ControlCriticality, native_enum=False), nullable=True),
     )
 
     op.create_table(
@@ -166,7 +164,7 @@ def upgrade() -> None:
             server_default=sa.text("gen_random_uuid()"),
         ),
         sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id"), nullable=False),
-        sa.Column("status", sa.String(20), nullable=False, server_default=sa.text("'draft'")),
+        sa.Column("status", sa.Enum(EvaluationStatus, native_enum=False), nullable=False, server_default=sa.text("'draft'")),
         sa.Column("last_group_id", sa.String(10), sa.ForeignKey("control_groups.id"), nullable=True),
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True),
@@ -188,7 +186,7 @@ def upgrade() -> None:
         sa.Column("answer", sa.Boolean(), nullable=False),
         sa.Column("observations", sa.Text(), nullable=True),
         sa.Column("answered_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
-        sa.Column("verdict", sa.String(40), nullable=True),
+        sa.Column("verdict", sa.Enum(ResponseVerdict, native_enum=False), nullable=True),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("evaluation_id", "control_id", name="uq_responses_evaluation_control"),
     )
@@ -220,7 +218,6 @@ def downgrade() -> None:
     op.drop_table("controls")
     op.drop_table("control_groups")
     op.drop_table("contacts")
-    op.drop_index("uq_single_expert", table_name="users")
     op.drop_table("users")
     op.drop_table("companies")
     op.drop_table("employee_ranges")
