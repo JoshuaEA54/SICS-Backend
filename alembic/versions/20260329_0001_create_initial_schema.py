@@ -99,6 +99,10 @@ def upgrade() -> None:
         sa.UniqueConstraint("email", name="uq_users_email"),
         sa.UniqueConstraint("company_id", name="uq_users_company_id"),
     )
+    op.create_index(
+        "uq_single_expert", "users", ["role"], unique=True,
+        postgresql_where=sa.text("role = 'expert'"),
+    )
 
     # ── Contactos ────────────────────────────────────────────────
 
@@ -166,7 +170,6 @@ def upgrade() -> None:
         sa.Column("last_group_id", sa.String(10), sa.ForeignKey("control_groups.id"), nullable=True),
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("expert_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()")),
     )
 
@@ -217,6 +220,7 @@ def downgrade() -> None:
     op.drop_table("controls")
     op.drop_table("control_groups")
     op.drop_table("contacts")
+    op.drop_index("uq_single_expert", table_name="users")
     op.drop_table("users")
     op.drop_table("companies")
     op.drop_table("employee_ranges")
