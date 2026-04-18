@@ -34,7 +34,7 @@ def create_user(db: Session, data: UserCreate) -> User:
 
 
 def update_user(db: Session, user_id: uuid.UUID, data: UserUpdate) -> User:
-    user = get_user(db, user_id)
+    user = db.execute(select(User).where(User.id == user_id)).scalar_one()
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(user, field, value)
     db.commit()
@@ -43,6 +43,6 @@ def update_user(db: Session, user_id: uuid.UUID, data: UserUpdate) -> User:
 
 
 def delete_user(db: Session, user_id: uuid.UUID) -> None:
-    user = get_user(db, user_id)
+    user = db.execute(select(User).where(User.id == user_id)).scalar_one()
     db.delete(user)
     db.commit()
