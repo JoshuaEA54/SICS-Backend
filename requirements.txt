@@ -43,3 +43,4 @@ websockets==16.0
 SQLAlchemy==2.0.44
 alembic==1.17.2
 psycopg[binary]==3.2.12
+fastapi-pagination==0.12.34

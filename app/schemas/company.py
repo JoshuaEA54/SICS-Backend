@@ -48,6 +48,14 @@ class CompanyCreate(BaseModel):
     branch_count: int = 0
 
 
+class CompanyUpdate(BaseModel):
+    name: str | None = None
+    sector_id: int | None = None
+    employee_range_id: int | None = None
+    district_id: int | None = None
+    branch_count: int | None = None
+
+
 class CompanyRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

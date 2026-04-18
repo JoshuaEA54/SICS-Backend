@@ -1,6 +1,7 @@
 from app.schemas.company import (
     CompanyCreate,
     CompanyRead,
+    CompanyUpdate,
     ContactCreate,
     ContactRead,
     EmployeeRangeCreate,
@@ -33,7 +34,7 @@ from app.schemas.evaluation import (
     ResponseVerdictUpdate,
 )
 from app.schemas.geography import CantonRead, DistrictRead, ProvinceRead
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import UserCreate, UserRead, UserUpdate
 
 __all__ = [
     # Geography
@@ -48,6 +49,7 @@ __all__ = [
     "EmployeeRangeUpdate",
     "EmployeeRangeRead",
     "CompanyCreate",
+    "CompanyUpdate",
     "CompanyRead",
     "ContactCreate",
     "ContactRead",
@@ -65,6 +67,7 @@ __all__ = [
     "ControlStandardRefRead",
     # User
     "UserCreate",
+    "UserUpdate",
     "UserRead",
     # Evaluation
     "EvaluationCreate",
