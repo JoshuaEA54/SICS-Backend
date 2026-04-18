@@ -1,4 +1,16 @@
-from app.schemas.catalog import (
+from app.schemas.company import (
+    CompanyCreate,
+    CompanyRead,
+    ContactCreate,
+    ContactRead,
+    EmployeeRangeCreate,
+    EmployeeRangeRead,
+    EmployeeRangeUpdate,
+    SectorCreate,
+    SectorRead,
+    SectorUpdate,
+)
+from app.schemas.controls import (
     ControlCreate,
     ControlGroupCreate,
     ControlGroupRead,
@@ -7,17 +19,10 @@ from app.schemas.catalog import (
     ControlStandardRefCreate,
     ControlStandardRefRead,
     ControlUpdate,
-    EmployeeRangeCreate,
-    EmployeeRangeRead,
-    EmployeeRangeUpdate,
-    SectorCreate,
-    SectorRead,
-    SectorUpdate,
     StandardCreate,
     StandardRead,
     StandardUpdate,
 )
-from app.schemas.company import CompanyCreate, CompanyRead, ContactCreate, ContactRead
 from app.schemas.evaluation import (
     EvaluationCreate,
     EvaluationRead,
@@ -35,13 +40,18 @@ __all__ = [
     "ProvinceRead",
     "CantonRead",
     "DistrictRead",
-    # Catalog
+    # Company
     "SectorCreate",
     "SectorUpdate",
     "SectorRead",
     "EmployeeRangeCreate",
     "EmployeeRangeUpdate",
     "EmployeeRangeRead",
+    "CompanyCreate",
+    "CompanyRead",
+    "ContactCreate",
+    "ContactRead",
+    # Controls
     "ControlGroupCreate",
     "ControlGroupUpdate",
     "ControlGroupRead",
@@ -53,11 +63,6 @@ __all__ = [
     "StandardRead",
     "ControlStandardRefCreate",
     "ControlStandardRefRead",
-    # Company
-    "CompanyCreate",
-    "CompanyRead",
-    "ContactCreate",
-    "ContactRead",
     # User
     "UserCreate",
     "UserRead",

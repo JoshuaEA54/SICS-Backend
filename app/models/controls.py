@@ -1,22 +1,8 @@
-from sqlalchemy import Enum as SAEnum, ForeignKey, Integer, SmallInteger, String, Text, UniqueConstraint
+from sqlalchemy import Enum as SAEnum, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.enums import ControlCriticality
 from app.db.base import Base
-
-
-class Sector(Base):
-    __tablename__ = "sectors"
-
-    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-
-
-class EmployeeRange(Base):
-    __tablename__ = "employee_ranges"
-
-    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, autoincrement=True)
-    label: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)
 
 
 class ControlGroup(Base):

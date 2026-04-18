@@ -4,6 +4,40 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
+# ── Sector ────────────────────────────────────────────────────────────────────
+
+class SectorCreate(BaseModel):
+    name: str
+
+
+class SectorUpdate(BaseModel):
+    name: str
+
+
+class SectorRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+
+
+# ── Employee Range ────────────────────────────────────────────────────────────
+
+class EmployeeRangeCreate(BaseModel):
+    label: str
+
+
+class EmployeeRangeUpdate(BaseModel):
+    label: str
+
+
+class EmployeeRangeRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    label: str
+
+
 # ── Company ───────────────────────────────────────────────────────────────────
 
 class CompanyCreate(BaseModel):

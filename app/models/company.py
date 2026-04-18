@@ -8,6 +8,20 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base
 
 
+class Sector(Base):
+    __tablename__ = "sectors"
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+
+
+class EmployeeRange(Base):
+    __tablename__ = "employee_ranges"
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, autoincrement=True)
+    label: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)
+
+
 class Company(Base):
     __tablename__ = "companies"
 
