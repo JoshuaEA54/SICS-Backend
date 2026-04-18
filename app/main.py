@@ -8,12 +8,15 @@ from app.api.routes.evaluations import router as evaluations_router
 from app.api.routes.geography import router as geography_router
 from app.api.routes.users import router as users_router
 from app.core.config import settings
+from app.core.exception_handlers import registrar_handlers
 
 
 app = FastAPI(
 	title=settings.APP_NAME,
 	debug=settings.DEBUG,
 )
+
+registrar_handlers(app)
 
 app.include_router(auth_router, prefix=settings.API_PREFIX)
 app.include_router(geography_router, prefix=settings.API_PREFIX)

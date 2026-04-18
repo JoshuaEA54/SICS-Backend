@@ -19,8 +19,8 @@ def get_control_groups_query() -> Select:
     return select(ControlGroup).order_by(ControlGroup.id)
 
 
-def get_control_group(db: Session, group_id: str) -> ControlGroup | None:
-    return db.execute(select(ControlGroup).where(ControlGroup.id == group_id)).scalar_one_or_none()
+def get_control_group(db: Session, group_id: str) -> ControlGroup:
+    return db.execute(select(ControlGroup).where(ControlGroup.id == group_id)).scalar_one()
 
 
 def create_control_group(db: Session, data: ControlGroupCreate) -> ControlGroup:
@@ -60,8 +60,8 @@ def get_controls_query(group_id: str | None = None) -> Select:
     return stmt
 
 
-def get_control(db: Session, control_id: str) -> Control | None:
-    return db.execute(select(Control).where(Control.id == control_id)).scalar_one_or_none()
+def get_control(db: Session, control_id: str) -> Control:
+    return db.execute(select(Control).where(Control.id == control_id)).scalar_one()
 
 
 def create_control(db: Session, data: ControlCreate) -> Control:

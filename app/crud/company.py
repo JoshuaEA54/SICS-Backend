@@ -73,8 +73,8 @@ def delete_employee_range(db: Session, range_id: int) -> None:
 
 # ── Company ───────────────────────────────────────────────────────────────────
 
-def get_company(db: Session, company_id: uuid.UUID) -> Company | None:
-    return db.execute(select(Company).where(Company.id == company_id)).scalar_one_or_none()
+def get_company(db: Session, company_id: uuid.UUID) -> Company:
+    return db.execute(select(Company).where(Company.id == company_id)).scalar_one()
 
 
 def get_companies_query() -> Select:

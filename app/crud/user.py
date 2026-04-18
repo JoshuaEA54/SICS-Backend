@@ -7,8 +7,8 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 
 
-def get_user(db: Session, user_id: uuid.UUID) -> User | None:
-    return db.execute(select(User).where(User.id == user_id)).scalar_one_or_none()
+def get_user(db: Session, user_id: uuid.UUID) -> User:
+    return db.execute(select(User).where(User.id == user_id)).scalar_one()
 
 
 def get_user_by_email(db: Session, email: str) -> User | None:

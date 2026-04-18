@@ -14,8 +14,8 @@ from app.schemas.evaluation import (
 
 # ── Evaluation ────────────────────────────────────────────────────────────────
 
-def get_evaluation(db: Session, eval_id: uuid.UUID) -> Evaluation | None:
-    return db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one_or_none()
+def get_evaluation(db: Session, eval_id: uuid.UUID) -> Evaluation:
+    return db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
 
 
 def get_evaluations_query(company_id: uuid.UUID | None = None) -> Select:
@@ -85,7 +85,7 @@ def get_evidence_query(response_id: uuid.UUID) -> Select:
     return select(Evidence).where(Evidence.response_id == response_id)
 
 
-def create_evidence(
+def stage_evidence(
     db: Session,
     response_id: uuid.UUID,
     file_path: str,
@@ -99,8 +99,7 @@ def create_evidence(
         file_type=file_type,
     )
     db.add(evidence)
-    db.commit()
-    db.refresh(evidence)
+    db.flush()  # validates FK without committing
     return evidence
 
 
