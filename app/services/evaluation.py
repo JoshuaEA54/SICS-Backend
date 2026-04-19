@@ -10,40 +10,52 @@ from app.core.exceptions import FileUploadError, InvalidFileError
 from app.models.evaluation import Evidence
 
 
-def upload_evidence(
+def upload_evidence_batch(
     db: Session,
     response_id: uuid.UUID,
-    file: UploadFile,
-) -> Evidence:
-    if file.content_type not in settings.ALLOWED_MIME_TYPES:
-        raise InvalidFileError("Tipo de archivo no permitido")
-
-    safe_name = Path(file.filename).name
-    if not safe_name or safe_name.startswith("."):
-        raise InvalidFileError("Nombre de archivo inválido")
-
+    files: list[UploadFile],
+) -> list[Evidence]:
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-    content = file.file.read(max_bytes + 1)
-    if len(content) > max_bytes:
-        raise InvalidFileError(f"El archivo supera el límite de {settings.MAX_UPLOAD_SIZE_MB} MB")
+    prepared: list[tuple[str, str | None, bytes, Path]] = []
+    for file in files:
+        if file.content_type not in settings.ALLOWED_MIME_TYPES:
+            raise InvalidFileError(f"Tipo de archivo no permitido: {file.filename}")
+        safe_name = Path(file.filename).name
+        if not safe_name or safe_name.startswith("."):
+            raise InvalidFileError(f"Nombre de archivo inválido: {file.filename}")
+        content = file.file.read(max_bytes + 1)
+        if len(content) > max_bytes:
+            raise InvalidFileError(f"El archivo '{safe_name}' supera el límite de {settings.MAX_UPLOAD_SIZE_MB} MB")
+        dest = Path(settings.UPLOAD_FOLDER) / str(response_id) / safe_name
+        prepared.append((safe_name, file.content_type, content, dest))
 
-    dest = Path(settings.UPLOAD_FOLDER) / str(response_id) / safe_name
-    evidence = crud.evaluation.stage_evidence(
-        db,
-        response_id=response_id,
-        file_path=str(dest),
-        file_name=safe_name,
-        file_type=file.content_type,
-    )
+    staged: list[tuple[Evidence, bytes, Path]] = []
+    for safe_name, content_type, content, dest in prepared:
+        evidence = crud.evaluation.stage_evidence(
+            db,
+            response_id=response_id,
+            file_path=str(dest),
+            file_name=safe_name,
+            file_type=content_type,
+        )
+        staged.append((evidence, content, dest))
+
+    written: list[Path] = []
     try:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(content)
+        for _, content, dest in staged:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(content)
+            written.append(dest)
     except OSError:
+        for path in written:
+            path.unlink(missing_ok=True)
         db.rollback()
-        raise FileUploadError("No se pudo guardar el archivo")
+        raise FileUploadError(f"No se pudo guardar el archivo '{dest.name}'")
+
     db.commit()
-    db.refresh(evidence)
-    return evidence
+    for evidence, _, _ in staged:
+        db.refresh(evidence)
+    return [evidence for evidence, _, _ in staged]
 
 
 def get_evidence_file(db: Session, evidence_id: uuid.UUID) -> tuple[Path, str, str | None]:

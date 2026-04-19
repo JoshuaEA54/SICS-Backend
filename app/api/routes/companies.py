@@ -103,8 +103,7 @@ def list_contacts(company_id: uuid.UUID, db: Session = Depends(get_db)):
 
 @router.post("/{company_id}/contacts", response_model=ContactRead, status_code=HTTPStatus.CREATED)
 def create_contact(company_id: uuid.UUID, data: ContactCreate, db: Session = Depends(get_db)):
-    data.company_id = company_id
-    return crud.company.create_contact(db, data)
+    return crud.company.create_contact(db, company_id, data)
 
 
 @router.delete("/contacts/{contact_id}", status_code=HTTPStatus.NO_CONTENT)

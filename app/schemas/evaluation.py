@@ -31,7 +31,6 @@ class EvaluationStatusUpdate(BaseModel):
 # ── Response ──────────────────────────────────────────────────────────────────
 
 class ResponseUpsert(BaseModel):
-    evaluation_id: uuid.UUID
     control_id: str
     answer: bool
     observations: str | None = None

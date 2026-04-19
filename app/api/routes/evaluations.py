@@ -54,8 +54,7 @@ def list_responses(eval_id: uuid.UUID, db: Session = Depends(get_db)):
 
 @router.put("/{eval_id}/responses", response_model=ResponseRead)
 def upsert_response(eval_id: uuid.UUID, data: ResponseUpsert, db: Session = Depends(get_db)):
-    data.evaluation_id = eval_id
-    return crud.evaluation.upsert_response(db, data)
+    return crud.evaluation.upsert_response(db, eval_id, data)
 
 
 @router.patch("/responses/{response_id}/verdict", response_model=ResponseRead)
@@ -70,13 +69,13 @@ def list_evidence(response_id: uuid.UUID, db: Session = Depends(get_db)):
     return paginate(db, crud.evaluation.get_evidence_query(response_id))
 
 
-@router.post("/responses/{response_id}/evidence", response_model=EvidenceRead, status_code=HTTPStatus.CREATED)
+@router.post("/responses/{response_id}/evidence", response_model=list[EvidenceRead], status_code=HTTPStatus.CREATED)
 async def upload_evidence(
     response_id: uuid.UUID,
-    file: UploadFile = File(...),
+    files: list[UploadFile] = File(...),
     db: Session = Depends(get_db),
 ):
-    return evaluation_service.upload_evidence(db, response_id, file)
+    return evaluation_service.upload_evidence_batch(db, response_id, files)
 
 
 @router.get("/evidence/{evidence_id}/file")
