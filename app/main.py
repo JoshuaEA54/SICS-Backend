@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 
 from app.api.routes.auth import router as auth_router
+from app.api.routes.companies import catalog_router as companies_catalog_router
 from app.api.routes.companies import router as companies_router
 from app.api.routes.controls import router as controls_router
 from app.api.routes.evaluations import router as evaluations_router
@@ -14,7 +15,6 @@ from app.core.exception_handlers import registrar_handlers
 
 app = FastAPI(
 	title=settings.APP_NAME,
-	debug=settings.DEBUG,
 	swagger_ui_parameters={"persistAuthorization": True},
 )
 
@@ -30,6 +30,7 @@ registrar_handlers(app)
 
 app.include_router(auth_router, prefix=settings.API_PREFIX)
 app.include_router(geography_router, prefix=settings.API_PREFIX)
+app.include_router(companies_catalog_router, prefix=settings.API_PREFIX)
 app.include_router(companies_router, prefix=settings.API_PREFIX)
 app.include_router(controls_router, prefix=settings.API_PREFIX)
 app.include_router(evaluations_router, prefix=settings.API_PREFIX)

@@ -7,13 +7,14 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.api.deps import get_db
+from app.api.deps import get_db, require_valid_token
 from app.core import security
 from app.core.config import settings
-from app.core.enums import AuthFlow, UserRole
+from app.core.enums import AuthFlow
 from app.core.exceptions import UnauthorizedError
-from app.schemas.auth import GoogleTokenRequest, RefreshRequest, TokenResponse
+from app.schemas.auth import GoogleTokenRequest, RefreshRequest, RegisterRequest, TokenResponse
 from app.schemas.user import UserRead
+from app.services.auth import register_new_company
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -74,6 +75,24 @@ def refresh(body: RefreshRequest, db: Session = Depends(get_db)):
         flow=flow,
         user=UserRead.model_validate(user),
         refresh_token=body.refresh_token,
+    )
+
+
+@router.post("/register", response_model=TokenResponse, status_code=201)
+def register_company(
+    body: RegisterRequest,
+    payload: dict = Depends(require_valid_token),
+    db: Session = Depends(get_db),
+):
+    if AuthFlow(payload.get("flow")) != AuthFlow.new_company:
+        raise UnauthorizedError("Este endpoint solo es válido para el flujo de nueva empresa")
+
+    _, user = register_new_company(db, email=payload["sub"], data=body)
+
+    return _make_token_response(
+        sub=str(user.id),
+        flow=AuthFlow.existing_company,
+        user=UserRead.model_validate(user),
     )
 
 

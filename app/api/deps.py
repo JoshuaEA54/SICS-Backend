@@ -23,6 +23,16 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+def require_valid_token(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> dict:
+    """Validates the JWT without restricting the auth flow. Use for catalog endpoints accessible during registration."""
+    try:
+        return security.decode_access_token(credentials.credentials)
+    except (JWTError, ValueError):
+        raise UnauthorizedError("Token inválido o expirado")
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),

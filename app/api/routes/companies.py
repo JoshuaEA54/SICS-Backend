@@ -7,9 +7,8 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, require_valid_token
 from app.schemas.company import (
-    CompanyCreate,
     CompanyRead,
     CompanyUpdate,
     ContactCreate,
@@ -24,10 +23,13 @@ from app.schemas.company import (
 
 router = APIRouter(prefix="/companies", tags=["companies"], dependencies=[Depends(get_current_user)])
 
+# Router for catalog endpoints accessible during company registration (new_company flow)
+catalog_router = APIRouter(prefix="/companies", tags=["companies"], dependencies=[Depends(require_valid_token)])
+
 
 # ── Sectors ───────────────────────────────────────────────────────────────────
 
-@router.get("/sectors", response_model=Page[SectorRead])
+@catalog_router.get("/sectors", response_model=Page[SectorRead])
 def list_sectors(db: Session = Depends(get_db)):
     return paginate(db, crud.company.get_sectors_query())
 
@@ -49,7 +51,7 @@ def delete_sector(sector_id: int, db: Session = Depends(get_db)):
 
 # ── Employee Ranges ───────────────────────────────────────────────────────────
 
-@router.get("/employee-ranges", response_model=Page[EmployeeRangeRead])
+@catalog_router.get("/employee-ranges", response_model=Page[EmployeeRangeRead])
 def list_employee_ranges(db: Session = Depends(get_db)):
     return paginate(db, crud.company.get_employee_ranges_query())
 
@@ -75,10 +77,6 @@ def delete_employee_range(range_id: int, db: Session = Depends(get_db)):
 def list_companies(db: Session = Depends(get_db)):
     return paginate(db, crud.company.get_companies_query())
 
-
-@router.post("/", response_model=CompanyRead, status_code=HTTPStatus.CREATED)
-def create_company(data: CompanyCreate, db: Session = Depends(get_db)):
-    return crud.company.create_company(db, data)
 
 
 @router.get("/{company_id}", response_model=CompanyRead)

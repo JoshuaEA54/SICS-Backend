@@ -18,3 +18,15 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     flow: AuthFlow
     user: UserRead | None = None
+
+
+class RegisterRequest(BaseModel):
+    # User info
+    name: str
+    job_title: str | None = None
+    # Company info
+    company_name: str
+    sector_id: int
+    employee_range_id: int
+    district_id: int
+    branch_count: int = 0

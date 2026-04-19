@@ -12,7 +12,6 @@ class Settings(BaseSettings):
 
 	APP_NAME: str = "SICS Backend"
 	API_PREFIX: str = "/api/v1"
-	DEBUG: bool = False
 
 	DATABASE_URL: str | None = None
 	POSTGRES_USER: str = ""

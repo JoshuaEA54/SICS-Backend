@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.api.deps import get_current_user, get_db
-from app.schemas.user import UserCreate, UserRead, UserUpdate
+from app.schemas.user import UserRead, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(get_current_user)])
 
@@ -17,10 +17,6 @@ router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(get_cu
 def list_users(db: Session = Depends(get_db)):
     return paginate(db, crud.user.get_users_query())
 
-
-@router.post("/", response_model=UserRead, status_code=HTTPStatus.CREATED)
-def create_user(data: UserCreate, db: Session = Depends(get_db)):
-    return crud.user.create_user(db, data)
 
 
 @router.get("/{user_id}", response_model=UserRead)
