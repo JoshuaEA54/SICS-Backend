@@ -71,7 +71,6 @@ class CompanyRead(BaseModel):
 # ── Contact ───────────────────────────────────────────────────────────────────
 
 class ContactCreate(BaseModel):
-    company_id: uuid.UUID
     name: str
     email: EmailStr
     job_title: str | None = None

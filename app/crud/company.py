@@ -116,9 +116,9 @@ def get_contacts_query(company_id: uuid.UUID) -> Select:
     return select(Contact).where(Contact.company_id == company_id).order_by(Contact.name)
 
 
-def create_contact(db: Session, data: ContactCreate) -> Contact:
+def create_contact(db: Session, company_id: uuid.UUID, data: ContactCreate) -> Contact:
     contact = Contact(
-        company_id=data.company_id,
+        company_id=company_id,
         name=data.name,
         email=str(data.email),
         job_title=data.job_title,

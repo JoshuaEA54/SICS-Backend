@@ -53,11 +53,11 @@ def get_response(db: Session, eval_id: uuid.UUID, control_id: str) -> Response |
     ).scalar_one_or_none()
 
 
-def upsert_response(db: Session, data: ResponseUpsert) -> Response:
-    response = get_response(db, data.evaluation_id, data.control_id)
+def upsert_response(db: Session, eval_id: uuid.UUID, data: ResponseUpsert) -> Response:
+    response = get_response(db, eval_id, data.control_id)
     if response is None:
         response = Response(
-            evaluation_id=data.evaluation_id,
+            evaluation_id=eval_id,
             control_id=data.control_id,
             answer=data.answer,
             observations=data.observations,
