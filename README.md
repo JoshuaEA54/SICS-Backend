@@ -147,6 +147,45 @@ Interactive docs at `http://localhost:8000/docs`.
 
 ---
 
+## Testing authenticated endpoints with Swagger
+
+All endpoints except `/auth/*` and `/geography/*` require a valid JWT. Follow these steps to get a token and authorize Swagger.
+
+### Step 1 — Get a Google `id_token`
+
+1. Go to [Google OAuth Playground](https://developers.google.com/oauthplayground/)
+2. Click the gear icon (⚙️) in the top-right corner
+3. Check **"Use your own OAuth credentials"**
+4. Enter your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from `.env`
+5. Close the settings panel
+6. In the **Step 1** box, type `openid email profile` and click **Authorize APIs**
+7. Sign in with the Google account that exists as a user in the database
+8. Click **Allow**
+9. In **Step 2**, click **Exchange authorization code for tokens**
+10. Copy the `id_token` value from the response (it's a long JWT string)
+
+### Step 2 — Exchange for a SICS token
+
+Open `http://localhost:8000/docs`, find `POST /api/v1/auth/google`, click **Try it out**, and send:
+
+```json
+{ "id_token": "<paste the id_token from Step 1>" }
+```
+
+Copy the `access_token` from the response.
+
+### Step 3 — Authorize in Swagger
+
+1. Click the **Authorize** button (🔒) at the top-right of the Swagger page
+2. Paste the `access_token` in the **Value** field (without the word "Bearer")
+3. Click **Authorize** → **Close**
+
+All endpoints will now include the token automatically. The authorization persists across page reloads.
+
+> **Note:** The token expires after 8 hours. Repeat from Step 1 to get a new one.
+
+---
+
 ## Daily development workflow
 
 ```
