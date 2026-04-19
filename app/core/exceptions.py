@@ -23,3 +23,11 @@ class ReferenceError(AppError):
 
 class FileUploadError(AppError):
     status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+class InvalidFileError(AppError):
+    status_code = HTTPStatus.BAD_REQUEST
+
+
+class UnauthorizedError(AppError):
+    status_code = HTTPStatus.UNAUTHORIZED

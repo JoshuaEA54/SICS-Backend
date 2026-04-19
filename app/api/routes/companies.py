@@ -7,7 +7,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.schemas.company import (
     CompanyCreate,
     CompanyRead,
@@ -22,7 +22,7 @@ from app.schemas.company import (
     SectorUpdate,
 )
 
-router = APIRouter(prefix="/companies", tags=["companies"])
+router = APIRouter(prefix="/companies", tags=["companies"], dependencies=[Depends(get_current_user)])
 
 
 # ── Sectors ───────────────────────────────────────────────────────────────────

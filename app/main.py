@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 
 from app.api.routes.auth import router as auth_router
@@ -14,6 +15,15 @@ from app.core.exception_handlers import registrar_handlers
 app = FastAPI(
 	title=settings.APP_NAME,
 	debug=settings.DEBUG,
+	swagger_ui_parameters={"persistAuthorization": True},
+)
+
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=settings.CORS_ORIGINS,
+	allow_credentials=True,
+	allow_methods=["*"],
+	allow_headers=["*"],
 )
 
 registrar_handlers(app)

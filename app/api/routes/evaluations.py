@@ -2,12 +2,13 @@ import uuid
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi.responses import FileResponse
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.services import evaluation as evaluation_service
 from app.schemas.evaluation import (
     EvaluationCreate,
@@ -19,7 +20,7 @@ from app.schemas.evaluation import (
     ResponseVerdictUpdate,
 )
 
-router = APIRouter(prefix="/evaluations", tags=["evaluations"])
+router = APIRouter(prefix="/evaluations", tags=["evaluations"], dependencies=[Depends(get_current_user)])
 
 
 # ── Evaluations ───────────────────────────────────────────────────────────────
@@ -78,6 +79,12 @@ async def upload_evidence(
     return evaluation_service.upload_evidence(db, response_id, file)
 
 
+@router.get("/evidence/{evidence_id}/file")
+def download_evidence(evidence_id: uuid.UUID, db: Session = Depends(get_db)):
+    path, file_name, file_type = evaluation_service.get_evidence_file(db, evidence_id)
+    return FileResponse(path=path, filename=file_name, media_type=file_type)
+
+
 @router.delete("/evidence/{evidence_id}", status_code=HTTPStatus.NO_CONTENT)
 def delete_evidence(evidence_id: uuid.UUID, db: Session = Depends(get_db)):
-    crud.evaluation.delete_evidence(db, evidence_id)
+    evaluation_service.delete_evidence(db, evidence_id)

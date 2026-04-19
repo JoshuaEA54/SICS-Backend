@@ -103,7 +103,11 @@ def stage_evidence(
     return evidence
 
 
+def get_evidence(db: Session, evidence_id: uuid.UUID) -> Evidence:
+    return db.execute(select(Evidence).where(Evidence.id == evidence_id)).scalar_one()
+
+
 def delete_evidence(db: Session, evidence_id: uuid.UUID) -> None:
-    evidence = db.execute(select(Evidence).where(Evidence.id == evidence_id)).scalar_one()
+    evidence = get_evidence(db, evidence_id)
     db.delete(evidence)
     db.commit()

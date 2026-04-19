@@ -7,10 +7,10 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/", response_model=Page[UserRead])

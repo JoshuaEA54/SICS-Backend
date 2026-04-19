@@ -25,6 +25,29 @@ class Settings(BaseSettings):
 	GOOGLE_CLIENT_SECRET: str = ""
 	UPLOAD_FOLDER: str = "data/uploads"
 
+	JWT_SECRET_KEY: str = ""
+	JWT_ALGORITHM: str = "HS256"
+	JWT_ACCESS_EXPIRE_MINUTES: int = 15
+	JWT_REFRESH_EXPIRE_DAYS: int = 7
+
+	CORS_ORIGINS: list[str] = []
+
+	MAX_UPLOAD_SIZE_MB: int = 25
+	ALLOWED_MIME_TYPES: frozenset[str] = frozenset([
+		"application/pdf",
+		"application/msword",
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		"application/vnd.ms-excel",
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		"application/vnd.ms-powerpoint",
+		"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		"text/plain",
+		"text/csv",
+		"image/jpeg",
+		"image/png",
+		"image/webp",
+	])
+
 	@computed_field
 	@property
 	def sqlalchemy_database_uri(self) -> str:

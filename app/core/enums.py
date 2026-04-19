@@ -6,6 +6,12 @@ class UserRole(str, Enum):
     expert = "expert"
 
 
+class AuthFlow(str, Enum):
+    expert = "expert"
+    existing_company = "existing_company"
+    new_company = "new_company"
+
+
 class EvaluationStatus(str, Enum):
     draft = "draft"
     submitted = "submitted"

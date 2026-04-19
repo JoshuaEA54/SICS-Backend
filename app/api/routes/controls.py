@@ -6,7 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.api.deps import get_db
+from app.api.deps import get_current_user, get_db
 from app.schemas.controls import (
     ControlCreate,
     ControlGroupCreate,
@@ -21,7 +21,7 @@ from app.schemas.controls import (
     StandardUpdate,
 )
 
-router = APIRouter(prefix="/controls", tags=["controls"])
+router = APIRouter(prefix="/controls", tags=["controls"], dependencies=[Depends(get_current_user)])
 
 
 # ── Control Groups ────────────────────────────────────────────────────────────
