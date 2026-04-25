@@ -274,3 +274,15 @@ backend/
 |------|-------------|
 | `company_rep` | Company representative. Registers and completes evaluations. |
 | `expert` | Cybersecurity expert. Assigned directly in the database. |
+
+---
+
+## License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)** license.
+
+You may view and study the source code. **Commercial use of any part of this project requires explicit written authorization from the author.**
+
+See [LICENSE](LICENSE) for full terms.
+
+&copy; 2026 Joshua Elizondo Abarca · [github.com/JoshuaEA54](https://github.com/JoshuaEA54)
