@@ -6,6 +6,7 @@ from app.schemas.user import UserRead
 
 class GoogleTokenRequest(BaseModel):
     code: str
+    redirect_uri: str
 
 
 class RefreshRequest(BaseModel):

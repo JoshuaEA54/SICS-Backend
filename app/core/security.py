@@ -12,16 +12,14 @@ _ACCESS = "access"
 _REFRESH = "refresh"
 
 
-def exchange_code_for_id_token(code: str) -> str:
-    """Exchange a Google OAuth2 authorization code for a Google ID token.
-    Uses 'postmessage' as redirect_uri — required for the JS popup flow."""
+def exchange_code_for_id_token(code: str, redirect_uri: str) -> str:
     resp = http_requests.post(
         "https://oauth2.googleapis.com/token",
         data={
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
             "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": "postmessage",
+            "redirect_uri": redirect_uri,
             "grant_type": "authorization_code",
         },
     )

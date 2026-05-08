@@ -17,7 +17,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/google", response_model=TokenResponse)
 def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
     try:
-        google_id_token = sec.exchange_code_for_id_token(body.code)
+        google_id_token = sec.exchange_code_for_id_token(body.code, body.redirect_uri)
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Error al validar con Google: {e}")
     return login_with_google(db, google_id_token)
