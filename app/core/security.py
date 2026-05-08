@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 
-import requests as http_requests
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from jose import jwt
@@ -10,24 +9,6 @@ from app.core.enums import AuthFlow
 
 _ACCESS = "access"
 _REFRESH = "refresh"
-
-
-def exchange_code_for_id_token(code: str, redirect_uri: str) -> str:
-    resp = http_requests.post(
-        "https://oauth2.googleapis.com/token",
-        data={
-            "code": code,
-            "client_id": settings.GOOGLE_CLIENT_ID,
-            "client_secret": settings.GOOGLE_CLIENT_SECRET,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code",
-        },
-    )
-    resp.raise_for_status()
-    token_data = resp.json()
-    if "id_token" not in token_data:
-        raise ValueError("Google did not return an ID token")
-    return token_data["id_token"]
 
 
 def verify_google_token(token: str) -> dict:

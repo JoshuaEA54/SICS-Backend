@@ -5,8 +5,7 @@ from app.schemas.user import UserRead
 
 
 class GoogleTokenRequest(BaseModel):
-    code: str
-    redirect_uri: str
+    credential: str
 
 
 class RefreshRequest(BaseModel):
@@ -22,10 +21,8 @@ class TokenResponse(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    # User info
     name: str
     job_title: str | None = None
-    # Company info
     company_name: str
     sector_id: int
     employee_range_id: int
