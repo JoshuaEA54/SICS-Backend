@@ -5,7 +5,7 @@ from app.schemas.user import UserRead
 
 
 class GoogleTokenRequest(BaseModel):
-    id_token: str
+    code: str
 
 
 class RefreshRequest(BaseModel):

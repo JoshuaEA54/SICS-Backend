@@ -7,6 +7,7 @@ from app.api.deps import get_db, require_valid_token
 from app.core.config import settings
 from app.core.enums import AuthFlow
 from app.core.exceptions import UnauthorizedError
+from app.core import security as sec
 from app.schemas.auth import GoogleTokenRequest, RefreshRequest, RegisterRequest, TokenResponse
 from app.services.auth import complete_registration, login_with_google, refresh_tokens
 
@@ -15,7 +16,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/google", response_model=TokenResponse)
 def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
-    return login_with_google(db, body.id_token)
+    try:
+        google_id_token = sec.exchange_code_for_id_token(body.code)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Error al validar con Google: {e}")
+    return login_with_google(db, google_id_token)
 
 
 @router.post("/refresh", response_model=TokenResponse)
