@@ -142,3 +142,42 @@ def delete_standard_ref(db: Session, ref_id: int) -> None:
     ref = db.execute(select(ControlStandardRef).where(ControlStandardRef.id == ref_id)).scalar_one()
     db.delete(ref)
     db.commit()
+
+
+# ── Questionnaire helpers ──────────────────────────────────────────────────────
+
+def get_all_groups_with_controls(db: Session) -> list[dict]:
+    groups = db.execute(select(ControlGroup).order_by(ControlGroup.id)).scalars().all()
+    controls = db.execute(select(Control).order_by(Control.id)).scalars().all()
+    refs_with_standards = db.execute(
+        select(ControlStandardRef, Standard)
+        .join(Standard, Standard.id == ControlStandardRef.standard_id)
+        .order_by(ControlStandardRef.control_id, Standard.name)
+    ).all()
+
+    refs_by_control: dict[str, list[dict]] = {}
+    for ref, std in refs_with_standards:
+        refs_by_control.setdefault(ref.control_id, []).append(
+            {"standard_name": std.name, "clause": ref.ref_code}
+        )
+
+    controls_by_group: dict[str, list[dict]] = {}
+    for ctrl in controls:
+        controls_by_group.setdefault(ctrl.group_id, []).append(
+            {
+                "id": ctrl.id,
+                "name": ctrl.name,
+                "description": ctrl.description,
+                "standards": refs_by_control.get(ctrl.id, []),
+            }
+        )
+
+    return [
+        {
+            "id": g.id,
+            "name": g.name,
+            "description": g.description,
+            "controls": controls_by_group.get(g.id, []),
+        }
+        for g in groups
+    ]

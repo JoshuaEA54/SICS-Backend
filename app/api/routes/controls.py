@@ -10,6 +10,7 @@ from app.api.deps import get_current_user, get_db
 from app.schemas.controls import (
     ControlCreate,
     ControlGroupCreate,
+    ControlGroupFull,
     ControlGroupRead,
     ControlGroupUpdate,
     ControlRead,
@@ -25,6 +26,11 @@ router = APIRouter(prefix="/controls", tags=["controls"], dependencies=[Depends(
 
 
 # ── Control Groups ────────────────────────────────────────────────────────────
+
+@router.get("/groups/full", response_model=list[ControlGroupFull])
+def list_control_groups_full(db: Session = Depends(get_db)):
+    return crud.controls.get_all_groups_with_controls(db)
+
 
 @router.get("/groups", response_model=Page[ControlGroupRead])
 def list_control_groups(db: Session = Depends(get_db)):
