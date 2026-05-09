@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
@@ -59,6 +60,8 @@ def update_last_group(db: Session, eval_id: uuid.UUID, last_group_id: str) -> Ev
 def update_evaluation_status(db: Session, eval_id: uuid.UUID, data: EvaluationStatusUpdate) -> Evaluation:
     evaluation = db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
     evaluation.status = data.status
+    if data.status == EvaluationStatus.submitted:
+        evaluation.submitted_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(evaluation)
     return evaluation
