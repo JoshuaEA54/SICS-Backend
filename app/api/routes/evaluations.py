@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.api.deps import get_current_user, get_db
+from app.core.enums import EvaluationStatus
 from app.services import evaluation as evaluation_service
 from app.schemas.evaluation import (
     EvaluationCreate,
@@ -26,8 +27,12 @@ router = APIRouter(prefix="/evaluations", tags=["evaluations"], dependencies=[De
 # ── Evaluations ───────────────────────────────────────────────────────────────
 
 @router.get("/", response_model=Page[EvaluationRead])
-def list_evaluations(company_id: uuid.UUID | None = None, db: Session = Depends(get_db)):
-    return paginate(db, crud.evaluation.get_evaluations_query(company_id))
+def list_evaluations(
+    company_id: uuid.UUID | None = None,
+    status: EvaluationStatus | None = None,
+    db: Session = Depends(get_db),
+):
+    return paginate(db, crud.evaluation.get_evaluations_query(company_id, status))
 
 
 @router.post("/", response_model=EvaluationRead, status_code=HTTPStatus.CREATED)

@@ -17,6 +17,7 @@ class EvaluationRead(BaseModel):
 
     id: uuid.UUID
     company_id: uuid.UUID
+    company_name: str | None
     status: EvaluationStatus
     last_group_id: str | None
     submitted_at: datetime | None

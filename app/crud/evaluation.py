@@ -28,10 +28,15 @@ def get_draft_evaluation(db: Session, company_id: uuid.UUID) -> Evaluation | Non
     ).scalar_one_or_none()
 
 
-def get_evaluations_query(company_id: uuid.UUID | None = None) -> Select:
+def get_evaluations_query(
+    company_id: uuid.UUID | None = None,
+    status: EvaluationStatus | None = None,
+) -> Select:
     stmt = select(Evaluation).order_by(Evaluation.created_at.desc())
     if company_id is not None:
         stmt = stmt.where(Evaluation.company_id == company_id)
+    if status is not None:
+        stmt = stmt.where(Evaluation.status == status)
     return stmt
 
 

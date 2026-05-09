@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import EvaluationStatus, ResponseVerdict
 from app.db.base import Base
@@ -25,6 +25,11 @@ class Evaluation(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
+    company: Mapped['Company'] = relationship('Company', lazy='joined')
+
+    @property
+    def company_name(self) -> str | None:
+        return self.company.name if self.company else None
 
 
 class Response(Base):
