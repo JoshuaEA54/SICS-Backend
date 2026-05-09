@@ -48,6 +48,14 @@ def create_evaluation(db: Session, data: EvaluationCreate) -> Evaluation:
     return evaluation
 
 
+def update_last_group(db: Session, eval_id: uuid.UUID, last_group_id: str) -> Evaluation:
+    evaluation = db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
+    evaluation.last_group_id = last_group_id
+    db.commit()
+    db.refresh(evaluation)
+    return evaluation
+
+
 def update_evaluation_status(db: Session, eval_id: uuid.UUID, data: EvaluationStatusUpdate) -> Evaluation:
     evaluation = db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
     evaluation.status = data.status

@@ -13,6 +13,7 @@ from app.core.enums import EvaluationStatus
 from app.services import evaluation as evaluation_service
 from app.schemas.evaluation import (
     EvaluationCreate,
+    EvaluationLastGroupUpdate,
     EvaluationRead,
     EvaluationStatusUpdate,
     EvidenceRead,
@@ -53,6 +54,11 @@ def get_evaluation(eval_id: uuid.UUID, db: Session = Depends(get_db)):
 @router.patch("/{eval_id}/status", response_model=EvaluationRead)
 def update_evaluation_status(eval_id: uuid.UUID, data: EvaluationStatusUpdate, db: Session = Depends(get_db)):
     return crud.evaluation.update_evaluation_status(db, eval_id, data)
+
+
+@router.patch("/{eval_id}/last-group", response_model=EvaluationRead)
+def update_last_group(eval_id: uuid.UUID, data: EvaluationLastGroupUpdate, db: Session = Depends(get_db)):
+    return crud.evaluation.update_last_group(db, eval_id, data.last_group_id)
 
 
 # ── Responses ─────────────────────────────────────────────────────────────────

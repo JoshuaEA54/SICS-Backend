@@ -29,6 +29,10 @@ class EvaluationStatusUpdate(BaseModel):
     status: EvaluationStatus
 
 
+class EvaluationLastGroupUpdate(BaseModel):
+    last_group_id: str
+
+
 # ── Response ──────────────────────────────────────────────────────────────────
 
 class ResponseUpsert(BaseModel):
