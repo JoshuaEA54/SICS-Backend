@@ -5,11 +5,17 @@ from app.schemas.user import UserRead
 
 
 class GoogleTokenRequest(BaseModel):
-    id_token: str
+    credential: str
 
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+
+
+class GoogleProfile(BaseModel):
+    name: str
+    email: str
+    picture: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -18,15 +24,9 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     flow: AuthFlow
     user: UserRead | None = None
+    google_profile: GoogleProfile | None = None
 
 
 class RegisterRequest(BaseModel):
-    # User info
     name: str
-    job_title: str | None = None
-    # Company info
-    company_name: str
-    sector_id: int
-    employee_range_id: int
-    district_id: int
-    branch_count: int = 0
+    job_title: str

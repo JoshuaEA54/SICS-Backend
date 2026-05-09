@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.api.deps import get_current_user, get_db, require_valid_token
+from app.core.exceptions import UnauthorizedError
+from app.schemas.auth import TokenResponse
 from app.schemas.company import (
+    CompanyCreate,
     CompanyRead,
     CompanyUpdate,
     ContactCreate,
@@ -20,6 +23,7 @@ from app.schemas.company import (
     SectorRead,
     SectorUpdate,
 )
+from app.services.auth import create_company_and_user
 
 router = APIRouter(prefix="/companies", tags=["companies"], dependencies=[Depends(get_current_user)])
 
@@ -56,6 +60,11 @@ def list_employee_ranges(db: Session = Depends(get_db)):
     return paginate(db, crud.company.get_employee_ranges_query())
 
 
+@catalog_router.post("/", response_model=TokenResponse, status_code=HTTPStatus.CREATED)
+def create_company(data: CompanyCreate, payload: dict = Depends(require_valid_token), db: Session = Depends(get_db)):
+    return create_company_and_user(db, payload=payload, data=data)
+
+
 @router.post("/employee-ranges", response_model=EmployeeRangeRead, status_code=HTTPStatus.CREATED)
 def create_employee_range(data: EmployeeRangeCreate, db: Session = Depends(get_db)):
     return crud.company.create_employee_range(db, data)
@@ -79,13 +88,20 @@ def list_companies(db: Session = Depends(get_db)):
 
 
 
-@router.get("/{company_id}", response_model=CompanyRead)
+@catalog_router.get("/{company_id}", response_model=CompanyRead)
 def get_company(company_id: uuid.UUID, db: Session = Depends(get_db)):
     return crud.company.get_company(db, company_id)
 
 
-@router.put("/{company_id}", response_model=CompanyRead)
-def update_company(company_id: uuid.UUID, data: CompanyUpdate, db: Session = Depends(get_db)):
+@catalog_router.put("/{company_id}", response_model=CompanyRead)
+def update_company(company_id: uuid.UUID, data: CompanyUpdate, payload: dict = Depends(require_valid_token), db: Session = Depends(get_db)):
+    sub = payload["sub"]
+    try:
+        user = crud.user.get_user(db, uuid.UUID(sub))
+    except Exception:
+        user = crud.user.get_user_by_email(db, sub)
+    if user is None or str(user.company_id) != str(company_id):
+        raise UnauthorizedError("No autorizado para modificar esta empresa")
     return crud.company.update_company(db, company_id, data)
 
 

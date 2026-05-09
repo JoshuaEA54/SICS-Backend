@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
@@ -23,3 +23,19 @@ def list_cantons(province_id: int, db: Session = Depends(get_db)):
 @router.get("/cantons/{canton_id}/districts", response_model=Page[DistrictRead])
 def list_districts(canton_id: int, db: Session = Depends(get_db)):
     return paginate(db, crud.geography.get_districts_query(canton_id))
+
+
+@router.get("/cantons/{canton_id}", response_model=CantonRead)
+def get_canton(canton_id: int, db: Session = Depends(get_db)):
+    canton = crud.geography.get_canton(db, canton_id)
+    if canton is None:
+        raise HTTPException(status_code=404)
+    return canton
+
+
+@router.get("/districts/{district_id}", response_model=DistrictRead)
+def get_district(district_id: int, db: Session = Depends(get_db)):
+    district = crud.geography.get_district(db, district_id)
+    if district is None:
+        raise HTTPException(status_code=404)
+    return district

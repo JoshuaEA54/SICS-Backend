@@ -90,7 +90,7 @@ def create_company(db: Session, data: CompanyCreate) -> Company:
         branch_count=data.branch_count,
     )
     db.add(company)
-    db.commit()
+    db.flush()
     db.refresh(company)
     return company
 

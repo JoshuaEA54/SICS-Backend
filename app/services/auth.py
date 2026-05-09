@@ -1,16 +1,13 @@
-import uuid
-
 from jose import JWTError
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from app import crud
 from app.core import security
 from app.core.enums import AuthFlow, UserRole
 from app.core.exceptions import UnauthorizedError
-from app.models.company import Company
 from app.models.user import User
-from app.schemas.auth import RegisterRequest, TokenResponse
+from app.schemas.auth import GoogleProfile, RegisterRequest, TokenResponse
+from app.schemas.company import CompanyCreate
 from app.schemas.user import UserRead
 
 
@@ -19,10 +16,11 @@ def _make_token_response(
     flow: AuthFlow,
     user: UserRead | None,
     refresh_token: str | None = None,
+    name: str | None = None,
 ) -> TokenResponse:
     return TokenResponse(
-        access_token=security.create_access_token(sub, flow),
-        refresh_token=refresh_token or security.create_refresh_token(sub, flow),
+        access_token=security.create_access_token(sub, flow, name),
+        refresh_token=refresh_token or security.create_refresh_token(sub, flow, name),
         flow=flow,
         user=user,
     )
@@ -35,12 +33,36 @@ def login_with_google(db: Session, google_id_token: str) -> TokenResponse:
         raise UnauthorizedError("Token de Google inválido")
 
     user = crud.user.get_user_by_email(db, info["email"])
+    profile = GoogleProfile(
+        name=info.get("name", ""),
+        email=info["email"],
+        picture=info.get("picture"),
+    )
 
     if user is None:
-        return _make_token_response(sub=info["email"], flow=AuthFlow.new_company, user=None)
+        # Usuario totalmente nuevo — sin registro en DB
+        response = _make_token_response(
+            sub=info["email"],
+            flow=AuthFlow.new_company,
+            user=None,
+            name=info.get("name", ""),
+        )
+        response.google_profile = profile
+        return response
+
+    if user.job_title is None:
+        # Paso 1 completado (empresa+usuario creados), paso 2 pendiente
+        response = _make_token_response(
+            sub=info["email"],
+            flow=AuthFlow.new_company,
+            user=UserRead.model_validate(user),
+            name=info.get("name", ""),
+        )
+        response.google_profile = profile
+        return response
 
     flow = AuthFlow.expert if user.role == UserRole.expert else AuthFlow.existing_company
-    return _make_token_response(sub=str(user.id), flow=flow, user=UserRead.model_validate(user))
+    return _make_token_response(sub=user.email, flow=flow, user=UserRead.model_validate(user))
 
 
 def refresh_tokens(db: Session, refresh_token: str) -> TokenResponse:
@@ -51,13 +73,8 @@ def refresh_tokens(db: Session, refresh_token: str) -> TokenResponse:
 
     sub = payload["sub"]
     flow = AuthFlow(payload["flow"])
-
-    if flow == AuthFlow.new_company:
-        return _make_token_response(sub=sub, flow=flow, user=None, refresh_token=refresh_token)
-
-    try:
-        user = crud.user.get_user(db, uuid.UUID(sub))
-    except NoResultFound:
+    user = crud.user.get_user_by_email(db, sub)
+    if user is None:
         raise UnauthorizedError("Usuario no encontrado")
 
     return _make_token_response(
@@ -65,38 +82,43 @@ def refresh_tokens(db: Session, refresh_token: str) -> TokenResponse:
         flow=flow,
         user=UserRead.model_validate(user),
         refresh_token=refresh_token,
+        name=payload.get("name") or None,
     )
 
 
-def register_new_company(db: Session, email: str, data: RegisterRequest) -> tuple[Company, User]:
-    company = Company(
-        name=data.company_name,
-        sector_id=data.sector_id,
-        employee_range_id=data.employee_range_id,
-        district_id=data.district_id,
-        branch_count=data.branch_count,
-    )
-    db.add(company)
-    db.flush()  # get company.id before committing
-
+def create_company_and_user(db: Session, payload: dict, data: CompanyCreate) -> TokenResponse:
+    email = payload["sub"]
+    name = payload.get("name", "")
+    company = crud.company.create_company(db, data)  # flush, no commit
     user = User(
-        name=data.name,
+        name=name,
         email=email,
-        job_title=data.job_title,
+        job_title=None,
         role=UserRole.company_rep,
         company_id=company.id,
     )
     db.add(user)
-    db.commit()
-    db.refresh(company)
+    db.commit()  # empresa + usuario en una sola transacción
     db.refresh(user)
-    return company, user
-
-
-def complete_registration(db: Session, email: str, data: RegisterRequest) -> TokenResponse:
-    _, user = register_new_company(db, email=email, data=data)
     return _make_token_response(
-        sub=str(user.id),
-        flow=AuthFlow.existing_company,
+        sub=email,
+        flow=AuthFlow.new_company,
         user=UserRead.model_validate(user),
+        name=name,
+    )
+
+
+def complete_registration(db: Session, sub: str, data: RegisterRequest) -> TokenResponse:
+    user = crud.user.get_user_by_email(db, sub)
+    if user is None:
+        raise UnauthorizedError("Usuario no encontrado")
+    user.name = data.name
+    user.job_title = data.job_title
+    db.commit()
+    db.refresh(user)
+    return _make_token_response(
+        sub=user.email,
+        flow=AuthFlow.new_company,
+        user=UserRead.model_validate(user),
+        name=user.name,
     )

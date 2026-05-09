@@ -23,3 +23,7 @@ def get_province(db: Session, province_id: int) -> Province | None:
 
 def get_canton(db: Session, canton_id: int) -> Canton | None:
     return db.execute(select(Canton).where(Canton.id == canton_id)).scalar_one_or_none()
+
+
+def get_district(db: Session, district_id: int) -> District | None:
+    return db.execute(select(District).where(District.id == district_id)).scalar_one_or_none()

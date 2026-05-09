@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
+from app.core.enums import EvaluationStatus
 from app.models.evaluation import Evaluation, Evidence, Response
 from app.schemas.evaluation import (
     EvaluationCreate,
@@ -18,10 +19,24 @@ def get_evaluation(db: Session, eval_id: uuid.UUID) -> Evaluation:
     return db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
 
 
-def get_evaluations_query(company_id: uuid.UUID | None = None) -> Select:
+def get_draft_evaluation(db: Session, company_id: uuid.UUID) -> Evaluation | None:
+    return db.execute(
+        select(Evaluation).where(
+            Evaluation.company_id == company_id,
+            Evaluation.status == EvaluationStatus.draft,
+        ).limit(1)
+    ).scalar_one_or_none()
+
+
+def get_evaluations_query(
+    company_id: uuid.UUID | None = None,
+    status: EvaluationStatus | None = None,
+) -> Select:
     stmt = select(Evaluation).order_by(Evaluation.created_at.desc())
     if company_id is not None:
         stmt = stmt.where(Evaluation.company_id == company_id)
+    if status is not None:
+        stmt = stmt.where(Evaluation.status == status)
     return stmt
 
 

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.enums import EvaluationStatus, ResponseVerdict
 
@@ -17,6 +17,7 @@ class EvaluationRead(BaseModel):
 
     id: uuid.UUID
     company_id: uuid.UUID
+    company_name: str | None
     status: EvaluationStatus
     last_group_id: str | None
     submitted_at: datetime | None
@@ -33,7 +34,7 @@ class EvaluationStatusUpdate(BaseModel):
 class ResponseUpsert(BaseModel):
     control_id: str
     answer: bool
-    observations: str | None = None
+    observations: str | None = Field(default=None, max_length=500)
 
 
 class ResponseRead(BaseModel):

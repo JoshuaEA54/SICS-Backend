@@ -19,23 +19,27 @@ def verify_google_token(token: str) -> dict:
     )
 
 
-def create_access_token(sub: str, flow: AuthFlow) -> str:
-    payload = {
+def create_access_token(sub: str, flow: AuthFlow, name: str | None = None) -> str:
+    payload: dict = {
         "sub": sub,
         "type": _ACCESS,
         "flow": flow,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_EXPIRE_MINUTES),
     }
+    if name:
+        payload["name"] = name
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-def create_refresh_token(sub: str, flow: AuthFlow) -> str:
-    payload = {
+def create_refresh_token(sub: str, flow: AuthFlow, name: str | None = None) -> str:
+    payload: dict = {
         "sub": sub,
         "type": _REFRESH,
         "flow": flow,
         "exp": datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_EXPIRE_DAYS),
     }
+    if name:
+        payload["name"] = name
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 

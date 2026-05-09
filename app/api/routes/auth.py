@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/google", response_model=TokenResponse)
 def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
-    return login_with_google(db, body.id_token)
+    return login_with_google(db, body.credential)
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -29,9 +29,7 @@ def register_company(
     payload: dict = Depends(require_valid_token),
     db: Session = Depends(get_db),
 ):
-    if AuthFlow(payload.get("flow")) != AuthFlow.new_company:
-        raise UnauthorizedError("Este endpoint solo es válido para el flujo de nueva empresa")
-    return complete_registration(db, email=payload["sub"], data=body)
+    return complete_registration(db, sub=payload["sub"], data=body)
 
 
 class TokenDebugRequest(BaseModel):

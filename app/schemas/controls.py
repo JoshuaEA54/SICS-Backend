@@ -83,3 +83,24 @@ class ControlStandardRefRead(BaseModel):
     control_id: str
     standard_id: int
     ref_code: str
+
+
+# ── Questionnaire (nested read) ───────────────────────────────────────────────
+
+class StandardRefNested(BaseModel):
+    standard_name: str
+    clause: str
+
+
+class ControlNested(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    standards: list[StandardRefNested]
+
+
+class ControlGroupFull(BaseModel):
+    id: str
+    name: str
+    description: str | None
+    controls: list[ControlNested]
