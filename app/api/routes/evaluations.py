@@ -35,6 +35,11 @@ def create_evaluation(data: EvaluationCreate, db: Session = Depends(get_db)):
     return crud.evaluation.create_evaluation(db, data)
 
 
+@router.get("/draft", response_model=EvaluationRead | None)
+def get_draft_evaluation(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    return crud.evaluation.get_draft_evaluation(db, current_user.company_id)
+
+
 @router.get("/{eval_id}", response_model=EvaluationRead)
 def get_evaluation(eval_id: uuid.UUID, db: Session = Depends(get_db)):
     return crud.evaluation.get_evaluation(db, eval_id)

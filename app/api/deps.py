@@ -1,4 +1,3 @@
-import uuid
 from collections.abc import Generator
 
 from fastapi import Depends
@@ -42,9 +41,8 @@ def get_current_user(
     except (JWTError, ValueError):
         raise UnauthorizedError("Token inválido o expirado")
 
-    if AuthFlow(payload.get("flow")) == AuthFlow.new_company:
-        raise UnauthorizedError("Registro de empresa incompleto")
-
     from app import crud
-    user = crud.user.get_user(db, uuid.UUID(payload["sub"]))
+    user = crud.user.get_user_by_email(db, payload["sub"])
+    if user is None:
+        raise UnauthorizedError("Usuario no encontrado")
     return user

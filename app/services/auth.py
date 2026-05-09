@@ -1,7 +1,4 @@
-import uuid
-
 from jose import JWTError
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from app import crud
@@ -65,7 +62,7 @@ def login_with_google(db: Session, google_id_token: str) -> TokenResponse:
         return response
 
     flow = AuthFlow.expert if user.role == UserRole.expert else AuthFlow.existing_company
-    return _make_token_response(sub=str(user.id), flow=flow, user=UserRead.model_validate(user))
+    return _make_token_response(sub=user.email, flow=flow, user=UserRead.model_validate(user))
 
 
 def refresh_tokens(db: Session, refresh_token: str) -> TokenResponse:
@@ -76,20 +73,8 @@ def refresh_tokens(db: Session, refresh_token: str) -> TokenResponse:
 
     sub = payload["sub"]
     flow = AuthFlow(payload["flow"])
-
-    if flow == AuthFlow.new_company:
-        user = crud.user.get_user_by_email(db, sub)
-        return _make_token_response(
-            sub=sub,
-            flow=flow,
-            user=UserRead.model_validate(user) if user else None,
-            refresh_token=refresh_token,
-            name=payload.get("name") or None,
-        )
-
-    try:
-        user = crud.user.get_user(db, uuid.UUID(sub))
-    except NoResultFound:
+    user = crud.user.get_user_by_email(db, sub)
+    if user is None:
         raise UnauthorizedError("Usuario no encontrado")
 
     return _make_token_response(
@@ -97,6 +82,7 @@ def refresh_tokens(db: Session, refresh_token: str) -> TokenResponse:
         flow=flow,
         user=UserRead.model_validate(user),
         refresh_token=refresh_token,
+        name=payload.get("name") or None,
     )
 
 
@@ -122,9 +108,8 @@ def create_company_and_user(db: Session, payload: dict, data: CompanyCreate) -> 
     )
 
 
-def complete_registration(db: Session, email: str, data: RegisterRequest) -> TokenResponse:
-    """Actualiza nombre y cargo del usuario existente (paso 2 del registro)."""
-    user = crud.user.get_user_by_email(db, email)
+def complete_registration(db: Session, sub: str, data: RegisterRequest) -> TokenResponse:
+    user = crud.user.get_user_by_email(db, sub)
     if user is None:
         raise UnauthorizedError("Usuario no encontrado")
     user.name = data.name
@@ -132,7 +117,8 @@ def complete_registration(db: Session, email: str, data: RegisterRequest) -> Tok
     db.commit()
     db.refresh(user)
     return _make_token_response(
-        sub=str(user.id),
-        flow=AuthFlow.existing_company,
+        sub=user.email,
+        flow=AuthFlow.new_company,
         user=UserRead.model_validate(user),
+        name=user.name,
     )
