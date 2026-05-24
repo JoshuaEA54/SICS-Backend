@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, case, false, func, select
 from sqlalchemy.orm import Session
 
 from app.core.enums import EvaluationStatus
 from app.core.exceptions import BadRequestError
+from app.models.company import Company
 from app.models.evaluation import Evaluation, Evidence, Response
 from app.schemas.evaluation import (
     EvaluationCreate,
@@ -32,13 +33,62 @@ def get_draft_evaluation(db: Session, company_id: uuid.UUID) -> Evaluation | Non
 def get_evaluations_query(
     company_id: uuid.UUID | None = None,
     status: EvaluationStatus | None = None,
+    sector_id: int | None = None,
+    exclude_draft: bool = False,
 ) -> Select:
-    stmt = select(Evaluation).order_by(Evaluation.created_at.desc())
+    stmt = select(Evaluation)
+    if sector_id is not None:
+        stmt = stmt.join(Company, Company.id == Evaluation.company_id).where(
+            Company.sector_id == sector_id
+        )
+
+    if exclude_draft:
+        stmt = stmt.where(Evaluation.status != EvaluationStatus.draft)
+
     if company_id is not None:
         stmt = stmt.where(Evaluation.company_id == company_id)
+
     if status is not None:
-        stmt = stmt.where(Evaluation.status == status)
+        if exclude_draft and status == EvaluationStatus.draft:
+            stmt = stmt.where(false())
+        else:
+            stmt = stmt.where(Evaluation.status == status)
+
+    status_priority = case(
+        (Evaluation.status == EvaluationStatus.submitted, 0),
+        (Evaluation.status == EvaluationStatus.reviewed, 1),
+        else_=2,
+    )
+    sort_date = case(
+        (Evaluation.status == EvaluationStatus.reviewed, Evaluation.reviewed_at),
+        else_=Evaluation.submitted_at,
+    )
+    stmt = stmt.order_by(
+        status_priority.asc(),
+        sort_date.desc().nulls_last(),
+        Evaluation.created_at.desc(),
+    )
+
     return stmt
+
+
+def get_evaluation_status_counts(
+    db: Session,
+    company_id: uuid.UUID | None = None,
+    exclude_draft: bool = False,
+) -> dict[str, int]:
+    def _count_for(status: EvaluationStatus) -> int:
+        stmt = select(func.count()).select_from(Evaluation).where(Evaluation.status == status)
+        if exclude_draft:
+            stmt = stmt.where(Evaluation.status != EvaluationStatus.draft)
+        if company_id is not None:
+            stmt = stmt.where(Evaluation.company_id == company_id)
+        return db.scalar(stmt) or 0
+
+    return {
+        "pending": _count_for(EvaluationStatus.submitted),
+        "reviewed": _count_for(EvaluationStatus.reviewed),
+    }
 
 
 def create_evaluation(db: Session, data: EvaluationCreate) -> Evaluation:
@@ -127,7 +177,7 @@ def stage_evidence(
         file_type=file_type,
     )
     db.add(evidence)
-    db.flush()  # validates FK without committing
+    db.flush()
     return evidence
 
 

@@ -19,8 +19,18 @@ def list_responses(db: Session, eval_id: uuid.UUID) -> list[Response]:
     return crud.evaluation.list_responses(db, eval_id)
 
 
-def enrich_evaluation_read(db: Session, evaluation: Evaluation) -> EvaluationRead:
-    base = EvaluationRead.model_validate(evaluation)
+def enrich_evaluation_read(
+    db: Session,
+    evaluation: Evaluation,
+    *,
+    company_labels: tuple[str | None, str | None] | None = None,
+) -> EvaluationRead:
+    if company_labels is None:
+        company_labels = crud.company.get_company_display_labels(db, evaluation.company_id)
+    company_name, sector_name = company_labels
+    base = EvaluationRead.model_validate(evaluation).model_copy(
+        update={"company_name": company_name, "sector_name": sector_name}
+    )
     responses = list_responses(db, evaluation.id)
 
     if evaluation.status == EvaluationStatus.reviewed:

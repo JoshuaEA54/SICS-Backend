@@ -77,6 +77,33 @@ def get_company(db: Session, company_id: uuid.UUID) -> Company:
     return db.execute(select(Company).where(Company.id == company_id)).scalar_one()
 
 
+def get_company_display_labels(db: Session, company_id: uuid.UUID) -> tuple[str | None, str | None]:
+    row = db.execute(
+        select(Company.name, Sector.name)
+        .select_from(Company)
+        .join(Sector, Sector.id == Company.sector_id)
+        .where(Company.id == company_id)
+    ).one_or_none()
+    if row is None:
+        return None, None
+    return row[0], row[1]
+
+
+def get_company_display_labels_map(
+    db: Session,
+    company_ids: set[uuid.UUID],
+) -> dict[uuid.UUID, tuple[str, str]]:
+    if not company_ids:
+        return {}
+    rows = db.execute(
+        select(Company.id, Company.name, Sector.name)
+        .select_from(Company)
+        .join(Sector, Sector.id == Company.sector_id)
+        .where(Company.id.in_(company_ids))
+    ).all()
+    return {row[0]: (row[1], row[2]) for row in rows}
+
+
 def get_companies_query() -> Select:
     return select(Company).order_by(Company.name)
 

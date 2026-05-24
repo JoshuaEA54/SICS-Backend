@@ -9,11 +9,12 @@ from sqlalchemy.orm import Session
 
 from app import crud
 from app.api.deps import get_current_user, get_db, require_company_rep, require_expert
-from app.core.enums import EvaluationStatus
+from app.core.enums import EvaluationStatus, UserRole
 from app.core.exceptions import BadRequestError, ForbiddenError
 from app.models.user import User
 from app.schemas.evaluation import (
     EvaluationCreate,
+    EvaluationInboxSummary,
     EvaluationLastGroupUpdate,
     EvaluationRead,
     EvaluationStatusUpdate,
@@ -43,13 +44,47 @@ router = APIRouter(prefix="/evaluations", tags=["evaluations"], dependencies=[De
 def list_evaluations(
     company_id: uuid.UUID | None = None,
     status: EvaluationStatus | None = None,
+    sector_id: int | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     scoped_company_id = effective_company_id_for_user(current_user, company_id)
-    page = paginate(db, crud.evaluation.get_evaluations_query(scoped_company_id, status))
-    page.items = [review_service.enrich_evaluation_read(db, item) for item in page.items]
+    exclude_draft = current_user.role == UserRole.expert
+    page = paginate(
+        db,
+        crud.evaluation.get_evaluations_query(
+            company_id=scoped_company_id,
+            status=status,
+            sector_id=sector_id,
+            exclude_draft=exclude_draft,
+        ),
+    )
+    labels_map = crud.company.get_company_display_labels_map(
+        db, {item.company_id for item in page.items}
+    )
+    page.items = [
+        review_service.enrich_evaluation_read(
+            db,
+            item,
+            company_labels=labels_map.get(item.company_id),
+        )
+        for item in page.items
+    ]
     return page
+
+
+@router.get("/summary", response_model=EvaluationInboxSummary)
+def get_evaluations_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    scoped_company_id = effective_company_id_for_user(current_user, None)
+    exclude_draft = current_user.role == UserRole.expert
+    return crud.evaluation.get_evaluation_status_counts(
+        db,
+        company_id=scoped_company_id,
+        exclude_draft=exclude_draft,
+    )
 
 
 @router.post("/", response_model=EvaluationRead, status_code=HTTPStatus.CREATED)

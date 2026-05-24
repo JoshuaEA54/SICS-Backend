@@ -22,7 +22,8 @@ class EvaluationRead(BaseModel):
 
     id: uuid.UUID
     company_id: uuid.UUID
-    company_name: str | None
+    company_name: str | None = None
+    sector_name: str | None = None
     status: EvaluationStatus
     last_group_id: str | None
     submitted_at: datetime | None
@@ -38,6 +39,11 @@ class EvaluationStatusUpdate(BaseModel):
 
 class EvaluationLastGroupUpdate(BaseModel):
     last_group_id: str
+
+
+class EvaluationInboxSummary(BaseModel):
+    pending: int
+    reviewed: int
 
 
 # ── Response ──────────────────────────────────────────────────────────────────
