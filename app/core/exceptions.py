@@ -31,3 +31,11 @@ class InvalidFileError(AppError):
 
 class UnauthorizedError(AppError):
     status_code = HTTPStatus.UNAUTHORIZED
+
+
+class ForbiddenError(AppError):
+    status_code = HTTPStatus.FORBIDDEN
+
+
+class BadRequestError(AppError):
+    status_code = HTTPStatus.BAD_REQUEST

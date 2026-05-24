@@ -8,6 +8,11 @@ from app.core.enums import EvaluationStatus, ResponseVerdict
 
 # ── Evaluation ────────────────────────────────────────────────────────────────
 
+class ReviewProgress(BaseModel):
+    completed: int
+    required: int
+
+
 class EvaluationCreate(BaseModel):
     company_id: uuid.UUID
 
@@ -23,6 +28,8 @@ class EvaluationRead(BaseModel):
     submitted_at: datetime | None
     reviewed_at: datetime | None
     created_at: datetime
+    compliance_percentage: float | None = None
+    review_progress: ReviewProgress | None = None
 
 
 class EvaluationStatusUpdate(BaseModel):

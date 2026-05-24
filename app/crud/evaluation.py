@@ -5,12 +5,12 @@ from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
 from app.core.enums import EvaluationStatus
+from app.core.exceptions import BadRequestError
 from app.models.evaluation import Evaluation, Evidence, Response
 from app.schemas.evaluation import (
     EvaluationCreate,
     EvaluationStatusUpdate,
     ResponseUpsert,
-    ResponseVerdictUpdate,
 )
 
 
@@ -59,6 +59,8 @@ def update_last_group(db: Session, eval_id: uuid.UUID, last_group_id: str) -> Ev
 
 def update_evaluation_status(db: Session, eval_id: uuid.UUID, data: EvaluationStatusUpdate) -> Evaluation:
     evaluation = db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
+    if data.status == EvaluationStatus.reviewed:
+        raise BadRequestError("Use el endpoint de finalizar revisión para marcar como revisada")
     evaluation.status = data.status
     if data.status == EvaluationStatus.submitted:
         evaluation.submitted_at = datetime.now(timezone.utc)
@@ -71,6 +73,14 @@ def update_evaluation_status(db: Session, eval_id: uuid.UUID, data: EvaluationSt
 
 def get_responses_query(eval_id: uuid.UUID) -> Select:
     return select(Response).where(Response.evaluation_id == eval_id)
+
+
+def get_response_by_id(db: Session, response_id: uuid.UUID) -> Response:
+    return db.execute(select(Response).where(Response.id == response_id)).scalar_one()
+
+
+def list_responses(db: Session, eval_id: uuid.UUID) -> list[Response]:
+    return list(db.scalars(get_responses_query(eval_id)).all())
 
 
 def get_response(db: Session, eval_id: uuid.UUID, control_id: str) -> Response | None:
@@ -92,14 +102,6 @@ def upsert_response(db: Session, eval_id: uuid.UUID, data: ResponseUpsert) -> Re
     else:
         response.answer = data.answer
         response.observations = data.observations
-    db.commit()
-    db.refresh(response)
-    return response
-
-
-def update_response_verdict(db: Session, response_id: uuid.UUID, data: ResponseVerdictUpdate) -> Response:
-    response = db.execute(select(Response).where(Response.id == response_id)).scalar_one()
-    response.verdict = data.verdict
     db.commit()
     db.refresh(response)
     return response
