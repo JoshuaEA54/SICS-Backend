@@ -104,8 +104,11 @@ def get_company_display_labels_map(
     return {row[0]: (row[1], row[2]) for row in rows}
 
 
-def get_companies_query() -> Select:
-    return select(Company).order_by(Company.name)
+def get_companies_query(q: str | None = None) -> Select:
+    stmt = select(Company).order_by(Company.name)
+    if q:
+        stmt = stmt.where(Company.name.ilike(f"%{q}%"))
+    return stmt
 
 
 def create_company(db: Session, data: CompanyCreate) -> Company:

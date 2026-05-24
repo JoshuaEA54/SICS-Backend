@@ -83,8 +83,11 @@ def delete_employee_range(range_id: int, db: Session = Depends(get_db)):
 # ── Companies ─────────────────────────────────────────────────────────────────
 
 @router.get("/", response_model=Page[CompanyRead])
-def list_companies(db: Session = Depends(get_db)):
-    return paginate(db, crud.company.get_companies_query())
+def list_companies(
+    q: str | None = None,
+    db: Session = Depends(get_db),
+):
+    return paginate(db, crud.company.get_companies_query(q=q.strip() if q else None))
 
 
 
