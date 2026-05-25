@@ -10,7 +10,7 @@ Web platform that allows companies to evaluate how well they comply with informa
 2. They answer a questionnaire of 30 controls organized in 16 groups (Governance, Cryptography, Risk Management, etc.)
 3. For each control they answer Yes/No, upload evidence files, and optionally add observations
 4. A cybersecurity expert reviews each response and issues a verdict
-5. The system calculates the compliance percentage and emails the report to the company
+5. The system calculates the compliance percentage; the expert may send the report by email manually when ready
 
 ---
 

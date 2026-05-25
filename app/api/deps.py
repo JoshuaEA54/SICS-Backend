@@ -6,8 +6,8 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 from app.core import security
-from app.core.enums import AuthFlow
-from app.core.exceptions import UnauthorizedError
+from app.core.enums import AuthFlow, UserRole
+from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.db.session import SessionLocal
 from app.models.user import User
 
@@ -45,4 +45,16 @@ def get_current_user(
     user = crud.user.get_user_by_email(db, payload["sub"])
     if user is None:
         raise UnauthorizedError("Usuario no encontrado")
+    return user
+
+
+def require_expert(user: User = Depends(get_current_user)) -> User:
+    if user.role != UserRole.expert:
+        raise ForbiddenError("Solo el experto puede realizar esta acción")
+    return user
+
+
+def require_company_rep(user: User = Depends(get_current_user)) -> User:
+    if user.role != UserRole.company_rep:
+        raise ForbiddenError("Solo la empresa puede realizar esta acción")
     return user
