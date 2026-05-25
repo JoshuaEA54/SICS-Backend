@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Informe de Cumplimiento — SICS</title>
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 14mm 18mm 14mm;
+  }
+
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    color: #1a1a2e;
+    margin: 0;
+    padding: 0;
+  }
+
+  table { border-collapse: collapse; width: 100%; }
+  td, th { vertical-align: top; }
+
+  /* ── Portada ── */
+  .cover-page {
+    page-break-after: always;
+  }
+
+  .cover-banner {
+    background: #1d4ed8;
+    color: #ffffff;
+    padding: 18px 20px;
+    margin: -14mm -14mm 24px -14mm;
+  }
+
+  .cover-banner-inner td {
+    vertical-align: middle;
+  }
+
+  .cover-logo img {
+    width: 64px;
+    height: 64px;
+    display: block;
+  }
+
+  .cover-brand-name {
+    font-size: 22pt;
+    font-weight: bold;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+
+  .cover-brand-subtitle {
+    font-size: 8pt;
+    color: #bfdbfe;
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  .cover-doc-title {
+    text-align: right;
+    font-size: 13pt;
+    font-weight: bold;
+    color: #ffffff;
+    line-height: 1.35;
+  }
+
+  .cover-doc-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #dbeafe;
+    font-size: 7.5pt;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+
+  .cover-company-block {
+    background: #faf8f4;
+    border: 1px solid #ddd8ce;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+
+  .cover-company-label {
+    font-size: 7.5pt;
+    font-weight: bold;
+    color: #9a9aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+
+  .cover-company-name {
+    font-size: 22pt;
+    font-weight: bold;
+    color: #1a1a2e;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  .cover-meta-label {
+    font-size: 7.5pt;
+    font-weight: bold;
+    color: #9a9aaa;
+    text-transform: uppercase;
+    padding-bottom: 3px;
+  }
+
+  .cover-meta-value {
+    font-size: 9.5pt;
+    color: #1a1a2e;
+    padding-bottom: 4px;
+  }
+
+  .compliance-hero {
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border: 2px solid #ddd8ce;
+    background: #ffffff;
+    text-align: center;
+  }
+
+  .compliance-hero-pct {
+    font-size: 42pt;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .compliance-hero-label {
+    font-size: 9pt;
+    font-weight: bold;
+    color: #6b6b80;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .compliance-hero-desc {
+    font-size: 10pt;
+    color: #1a1a2e;
+    margin-bottom: 10px;
+  }
+
+  .compliance-hero-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    font-size: 8.5pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .compliance-hero-counts {
+    font-size: 9pt;
+    color: #6b6b80;
+  }
+
+  .compliance-hero-counts .count {
+    font-size: 16pt;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .compliance-band-red { border-color: #fca5a5; background: #fff5f5; }
+  .compliance-band-red .compliance-hero-pct,
+  .compliance-band-red .count { color: #b91c1c; }
+  .compliance-band-red .compliance-hero-badge { background: #fee2e2; color: #b91c1c; }
+
+  .compliance-band-amber { border-color: #fcd34d; background: #fffdf5; }
+  .compliance-band-amber .compliance-hero-pct,
+  .compliance-band-amber .count { color: #b45309; }
+  .compliance-band-amber .compliance-hero-badge { background: #fef3c7; color: #b45309; }
+
+  .compliance-band-lightGreen { border-color: #86efac; background: #f7fef9; }
+  .compliance-band-lightGreen .compliance-hero-pct,
+  .compliance-band-lightGreen .count { color: #15803d; }
+  .compliance-band-lightGreen .compliance-hero-badge { background: #dcfce7; color: #15803d; }
+
+  .compliance-band-darkGreen { border-color: #4ade80; background: #f4fdf7; }
+  .compliance-band-darkGreen .compliance-hero-pct,
+  .compliance-band-darkGreen .count { color: #166534; }
+  .compliance-band-darkGreen .compliance-hero-badge { background: #bbf7d0; color: #166534; }
+
+  .cover-expert-box {
+    background: #ffffff;
+    border: 1px solid #ddd8ce;
+    padding: 14px 16px;
+  }
+
+  .cover-section-title {
+    font-size: 9pt;
+    font-weight: bold;
+    color: #1d4ed8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+
+  .meta-label {
+    font-size: 7.5pt;
+    font-weight: bold;
+    color: #9a9aaa;
+    text-transform: uppercase;
+    padding-bottom: 2px;
+  }
+
+  .meta-value {
+    font-size: 9.5pt;
+    color: #1a1a2e;
+    padding-bottom: 6px;
+  }
+
+  /* ── Páginas de detalle ── */
+  .detail-header {
+    border-bottom: 2px solid #1d4ed8;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+
+  .detail-header-logo img {
+    width: 32px;
+    height: 32px;
+    display: block;
+  }
+
+  .detail-header-brand {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #1d4ed8;
+    line-height: 1.1;
+  }
+
+  .detail-header-company {
+    text-align: right;
+    font-size: 9pt;
+    color: #6b6b80;
+  }
+
+  .detail-header-company .name {
+    display: block;
+    font-size: 10pt;
+    font-weight: bold;
+    color: #1a1a2e;
+    margin-bottom: 2px;
+  }
+
+  h2 {
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    color: #1d4ed8;
+  }
+
+  .section { margin-bottom: 16px; }
+
+  .group-title {
+    font-size: 10pt;
+    font-weight: bold;
+    color: #1d4ed8;
+    background: #eff6ff;
+    padding: 7px 10px;
+    border: 1px solid #bfdbfe;
+    border-bottom: none;
+    margin-top: 14px;
+  }
+
+  .data-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .data-table thead tr { background: #f0ede7; }
+  .data-table thead th {
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: bold;
+    color: #6b6b80;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    border: 1px solid #ddd8ce;
+    word-break: break-word;
+  }
+  .data-table tbody td {
+    padding: 6px 8px;
+    border: 1px solid #e5e1db;
+    font-size: 8.5pt;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  .data-table tbody tr.alt { background: #faf8f4; }
+
+  .control-id {
+    font-family: Courier, monospace;
+    font-size: 7.5pt;
+    color: #6b6b80;
+  }
+
+  .verdict-badge {
+    padding: 2px 7px;
+    font-size: 7.5pt;
+    font-weight: bold;
+    display: inline-block;
+  }
+  .verdict-complies { background: #d1fae5; color: #065f46; }
+  .verdict-observations { background: #fef3c7; color: #92400e; }
+  .verdict-does-not-comply { background: #fee2e2; color: #991b1b; }
+  .verdict-na { background: #f0ede7; color: #9a9aaa; }
+  .answer-yes { color: #065f46; font-weight: bold; }
+  .answer-no { color: #991b1b; font-weight: bold; }
+
+  .observations-cell {
+    font-size: 8pt;
+    color: #4a4a5e;
+    line-height: 1.4;
+  }
+
+  .footer-note {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd8ce;
+    font-size: 7.5pt;
+    color: #9a9aaa;
+    text-align: center;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ PORTADA ══════════════ -->
+<div class="cover-page">
+
+  <!-- Banda azul superior -->
+  <div class="cover-banner">
+    <table class="cover-banner-inner">
+      <tr>
+        <td style="width: 70%;">
+          <table>
+            <tr>
+              <td style="width: 72px; padding-right: 14px;">
+                {% if logo_path %}
+                <div class="cover-logo">
+                  <img src="{{ logo_path }}" alt="SICS" width="64" height="64" />
+                </div>
+                {% endif %}
+              </td>
+              <td>
+                <div class="cover-brand-name">SICS</div>
+                <div class="cover-brand-subtitle">
+                  Sistema Integrado de Cumplimiento en<br />Seguridad de la Información
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+        <td style="width: 30%;">
+          <div class="cover-doc-title">
+            Informe de Cumplimiento de<br />Seguridad de la Información
+          </div>
+          <div class="cover-doc-badge">CONFIDENCIAL</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Empresa evaluada -->
+  <div class="cover-company-block">
+    <div class="cover-company-label">Empresa evaluada</div>
+    <div class="cover-company-name">{{ company.name }}</div>
+    <table>
+      <tr>
+        <td style="width: 33%;">
+          <div class="cover-meta-label">Sector</div>
+          <div class="cover-meta-value">{{ sector_name }}</div>
+        </td>
+        <td style="width: 33%;">
+          <div class="cover-meta-label">Evaluación enviada</div>
+          <div class="cover-meta-value">{{ submitted_at_fmt }}</div>
+        </td>
+        <td style="width: 33%;">
+          <div class="cover-meta-label">Revisión completada</div>
+          <div class="cover-meta-value">{{ reviewed_at_fmt }}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Resultado de cumplimiento -->
+  <div class="compliance-hero compliance-band-{{ compliance_band }}">
+    <div class="compliance-hero-pct">{{ compliance_pct_fmt }}%</div>
+    <div class="compliance-hero-label">Porcentaje de cumplimiento</div>
+    <div class="compliance-hero-desc">{{ compliance_description }}</div>
+    <div class="compliance-hero-badge">{{ compliance_label }}</div>
+    <div class="compliance-hero-counts">
+      <span class="count">{{ compliant_count }}/{{ total_controls }}</span>
+      controles cumplidos
+    </div>
+  </div>
+
+  <!-- Experto revisor -->
+  <div class="cover-expert-box">
+    <div class="cover-section-title">Revisión técnica</div>
+    <table>
+      <tr>
+        <td style="width: 50%;">
+          <div class="meta-label">Experto revisor</div>
+          <div class="meta-value">{{ expert.name }}</div>
+        </td>
+        <td style="width: 50%;">
+          <div class="meta-label">Correo del experto</div>
+          <div class="meta-value">{{ expert.email }}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- ══════════════ DETALLE ══════════════ -->
+
+<!-- Header compacto -->
+<table class="detail-header">
+  <tr>
+    <td style="width: 55%;">
+      <table>
+        <tr>
+          <td style="width: 38px; padding-right: 8px;">
+            {% if logo_path %}
+            <div class="detail-header-logo">
+              <img src="{{ logo_path }}" alt="SICS" width="32" height="32" />
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <div class="detail-header-brand">SICS</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td style="width: 45%;" class="detail-header-company">
+      <span class="name">{{ company.name }}</span>
+      Detalle por grupo de controles
+    </td>
+  </tr>
+</table>
+
+<div class="section">
+  <h2>Detalle por grupo de controles</h2>
+  {% for group in groups %}
+  <div class="group-title">
+    {{ group.id }} — {{ group.name }}
+    {% if group.criticality %}
+    ({{ group.criticality | upper }})
+    {% endif %}
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:10%">Control</th>
+        <th style="width:28%">Nombre del control</th>
+        <th style="width:10%">Respuesta empresa</th>
+        <th style="width:27%">Observaciones</th>
+        <th style="width:25%">Veredicto del experto</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in group.rows %}
+      <tr{% if loop.index is even %} class="alt"{% endif %}>
+        <td class="control-id">{{ row.control_id }}</td>
+        <td>{{ row.control_name }}</td>
+        <td class="{{ 'answer-yes' if row.answer else 'answer-no' }}">
+          {{ 'Sí cumple' if row.answer else 'No cumple' }}
+        </td>
+        <td class="observations-cell">{{ row.observations or '—' }}</td>
+        <td>
+          {% if row.verdict == 'complies' %}
+            <span class="verdict-badge verdict-complies">Cumple</span>
+          {% elif row.verdict == 'complies_with_observations' %}
+            <span class="verdict-badge verdict-observations">Cumple con observaciones</span>
+          {% elif row.verdict == 'does_not_comply' %}
+            <span class="verdict-badge verdict-does-not-comply">No cumple</span>
+          {% else %}
+            <span class="verdict-badge verdict-na">N/A</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endfor %}
+</div>
+
+<div class="footer-note">
+  Informe generado automáticamente por SICS el {{ generated_at_fmt }}.<br />
+  Este documento es confidencial y está destinado exclusivamente a la empresa evaluada.<br />
+  Los resultados reflejan el estado de cumplimiento en la fecha de revisión y pueden variar con el tiempo.
+</div>
+
+</body>
+</html>

@@ -4,7 +4,7 @@ import uuid
 
 import pytest
 
-from app.core.enums import EvaluationStatus, ResponseVerdict
+from app.core.enums import EvaluationStatus, ReportStatus, ResponseVerdict
 from app.core.exceptions import BadRequestError
 from app.services import review as review_service
 
@@ -23,6 +23,8 @@ def _evaluation(*, status=EvaluationStatus.submitted):
         id=uuid.uuid4(),
         status=status,
         reviewed_at=None,
+        report_status=None,
+        report_error=None,
         company_id=uuid.uuid4(),
     )
 
@@ -87,5 +89,7 @@ class TestFinalizeReview:
 
         assert result.status == EvaluationStatus.reviewed
         assert result.reviewed_at is not None
+        assert result.report_status == ReportStatus.generating
+        assert result.report_error is None
         db.commit.assert_called_once()
         db.refresh.assert_called_once_with(evaluation)

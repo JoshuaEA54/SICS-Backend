@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.core.enums import EvaluationStatus
+from app.core.enums import EvaluationStatus, ReportStatus
 from app.core.exceptions import BadRequestError
 from app.models.evaluation import Evaluation, Response
 from app.schemas.evaluation import EvaluationRead, ResponseVerdictUpdate, ReviewProgress
@@ -34,8 +34,13 @@ def enrich_evaluation_read(
     responses = list_responses(db, evaluation.id)
 
     if evaluation.status == EvaluationStatus.reviewed:
+        compliant_count = sum(1 for r in responses if compliance.response_is_compliant(r))
         return base.model_copy(
-            update={"compliance_percentage": compliance.calculate_compliance_percentage(responses)}
+            update={
+                "compliance_percentage": compliance.calculate_compliance_percentage(responses),
+                "compliant_count": compliant_count,
+                "total_controls": len(responses),
+            }
         )
     if evaluation.status == EvaluationStatus.submitted:
         completed, required = compliance.calculate_review_progress(responses)
@@ -75,6 +80,8 @@ def finalize_review(db: Session, eval_id: uuid.UUID) -> Evaluation:
 
     evaluation.status = EvaluationStatus.reviewed
     evaluation.reviewed_at = datetime.now(timezone.utc)
+    evaluation.report_status = ReportStatus.generating
+    evaluation.report_error = None
     db.commit()
     db.refresh(evaluation)
     return evaluation

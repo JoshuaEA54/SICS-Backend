@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 	GOOGLE_CLIENT_ID: str = ""
 	GOOGLE_CLIENT_SECRET: str = ""
 	UPLOAD_FOLDER: str = "data/uploads"
+	REPORTS_FOLDER: str = "data/reports"
 
 	JWT_SECRET_KEY: str = ""
 	JWT_ALGORITHM: str = "HS256"
