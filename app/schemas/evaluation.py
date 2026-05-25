@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.enums import EvaluationStatus, ResponseVerdict
+from app.core.enums import EvaluationStatus, ReportStatus, ResponseVerdict
 
 
 # ── Evaluation ────────────────────────────────────────────────────────────────
@@ -30,7 +30,12 @@ class EvaluationRead(BaseModel):
     reviewed_at: datetime | None
     created_at: datetime
     compliance_percentage: float | None = None
+    compliant_count: int | None = None
+    total_controls: int | None = None
     review_progress: ReviewProgress | None = None
+    report_status: ReportStatus | None = None
+    report_generated_at: datetime | None = None
+    report_error: str | None = None
 
 
 class EvaluationStatusUpdate(BaseModel):

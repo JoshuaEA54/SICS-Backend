@@ -5,7 +5,7 @@ from sqlalchemy import Boolean, DateTime, Enum as SAEnum, ForeignKey, String, Te
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.enums import EvaluationStatus, ResponseVerdict
+from app.core.enums import EvaluationStatus, ReportStatus, ResponseVerdict
 from app.db.base import Base
 
 
@@ -22,6 +22,10 @@ class Evaluation(Base):
     last_group_id: Mapped[str | None] = mapped_column(String(10), ForeignKey("control_groups.id"), nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    report_status: Mapped[ReportStatus | None] = mapped_column(SAEnum(ReportStatus, native_enum=False, create_constraint=True, name="ck_evaluations_report_status"), nullable=True)
+    report_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    report_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    report_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )

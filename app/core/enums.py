@@ -28,3 +28,9 @@ class ControlCriticality(str, Enum):
     high = "high"
     medium = "medium"
     low = "low"
+
+
+class ReportStatus(str, Enum):
+    generating = "generating"
+    ready = "ready"
+    failed = "failed"
