@@ -2,7 +2,6 @@
 
 Web platform that allows companies to evaluate how well they comply with information security controls, based on **Costa Rica's Law 8968** and international frameworks including **ISO 27001, ISO 27002, ISO 27005, ISO 27701** and **NIST CSF**.
 
----
 
 ## How it works
 
@@ -10,9 +9,9 @@ Web platform that allows companies to evaluate how well they comply with informa
 2. They answer a questionnaire of 30 controls organized in 16 groups (Governance, Cryptography, Risk Management, etc.)
 3. For each control they answer Yes/No, upload evidence files, and optionally add observations
 4. A cybersecurity expert reviews each response and issues a verdict
-5. The system calculates the compliance percentage; the expert may send the report by email manually when ready
+5. On finalization, the system calculates the compliance percentage and generates a PDF report automatically
+6. The company and expert can preview and download the report from the web app
 
----
 
 ## Architecture
 
@@ -31,7 +30,6 @@ The database runs in Docker; the backend runs directly on the host with Python.
 
 This setup gives you fast iteration (no image rebuilds) while keeping the database isolated and reproducible.
 
----
 
 ## Tech stack
 
@@ -41,10 +39,10 @@ This setup gives you fast iteration (no image rebuilds) while keeping the databa
 | ORM | SQLAlchemy |
 | Migrations | Alembic |
 | Database | PostgreSQL (Docker) |
-| Authentication | Google OAuth 2.0 |
-| Frontend | React + Vite + TypeScript (separate repository) |
+| Authentication | Google OAuth 2.0 + JWT |
+| PDF generation | Jinja2 + xhtml2pdf |
+| Frontend | React + Vite + TypeScript (monorepo `frontend/`) |
 
----
 
 ## Prerequisites
 
@@ -54,7 +52,6 @@ This setup gives you fast iteration (no image rebuilds) while keeping the databa
 | Docker + Docker Compose | Run PostgreSQL |
 | Git | Version control |
 
----
 
 ## Quickstart
 
@@ -145,7 +142,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 The API is available at `http://localhost:8000`.
 Interactive docs at `http://localhost:8000/docs`.
 
----
 
 ## Testing authenticated endpoints with Swagger
 
@@ -184,7 +180,6 @@ All endpoints will now include the token automatically. The authorization persis
 
 > **Note:** The token expires after 8 hours. Repeat from Step 1 to get a new one.
 
----
 
 ## Daily development workflow
 
@@ -202,8 +197,6 @@ alembic revision --autogenerate -m "describe change"
 alembic upgrade head
 ```
 
----
-
 ## Alembic workflow
 
 Never update the schema via ad-hoc SQL. Always use migration files.
@@ -218,7 +211,6 @@ Never update the schema via ad-hoc SQL. Always use migration files.
 
 Detailed guide: [DOCKER_ALEMBIC_FLOW.md](DOCKER_ALEMBIC_FLOW.md)
 
----
 
 ## Stopping and resetting the database
 
@@ -236,46 +228,106 @@ docker compose up -d
 alembic upgrade head
 ```
 
----
 
 ## Project structure
 
 ```
 backend/
 ├── app/
-│   ├── main.py            # FastAPI entry point
+│   ├── main.py                # FastAPI entry point
 │   ├── api/
-│   │   ├── deps.py        # Shared dependencies (get_db, get_current_user)
-│   │   └── routes/        # API endpoints
+│   │   ├── deps.py            # Shared dependencies (get_db, get_current_user, require_expert)
+│   │   └── routes/            # API endpoints
 │   ├── core/
-│   │   ├── config.py      # Environment variables (pydantic-settings)
-│   │   └── security.py    # Google token verification
+│   │   ├── config.py          # Environment variables (pydantic-settings)
+│   │   ├── enums.py           # EvaluationStatus, ResponseVerdict, ReportStatus, UserRole
+│   │   └── security.py        # JWT and Google token verification
 │   ├── db/
-│   │   ├── base.py        # SQLAlchemy declarative base
-│   │   └── session.py     # Database engine and session factory
-│   ├── models/            # SQLAlchemy ORM models
-│   ├── schemas/           # Pydantic request/response schemas
-│   ├── crud/              # Database query helpers
-│   └── services/          # Business logic (email, compliance scoring)
-├── alembic/               # Migration environment
-│   ├── env.py             # Reads DATABASE_URL from app settings
-│   └── versions/          # Migration files
-├── alembic.ini            # Alembic config (URL injected at runtime)
-├── docker-compose.yml     # PostgreSQL only
+│   │   ├── base.py            # SQLAlchemy declarative base
+│   │   └── session.py         # Database engine and session factory
+│   ├── models/                # SQLAlchemy ORM models
+│   ├── schemas/               # Pydantic request/response schemas
+│   ├── crud/                  # Database query helpers
+│   ├── services/
+│   │   ├── auth.py            # Google OAuth exchange
+│   │   ├── compliance.py      # Compliance percentage and review progress
+│   │   ├── review.py          # Expert verdicts and finalize review
+│   │   ├── evaluation.py      # Evaluation business logic
+│   │   ├── evaluation_access.py  # Role-based access checks
+│   │   ├── email.py           # Email sending (future)
+│   │   └── report/            # PDF report generation
+│   │       ├── context.py     # Build Jinja2 template context
+│   │       ├── render.py      # HTML rendering
+│   │       ├── pdf.py         # HTML → PDF (xhtml2pdf)
+│   │       ├── task.py        # Background generation task
+│   │       └── filename.py    # Download filename builder
+│   ├── templates/report/      # Jinja2 HTML templates for PDF
+│   └── static/report/         # Logo PNG for PDF reports
+├── alembic/                   # Migration environment
+├── data/reports/              # Generated PDF files (gitignored)
+├── docker-compose.yml         # PostgreSQL only
 ├── requirements.txt
-└── .env.example           # Copy to .env and fill in secrets
+└── .env.example
 ```
 
----
+
+## Key API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/auth/google` | Exchange Google token → JWT |
+| `POST` | `/auth/register` | Complete registration step 2 |
+| `GET` | `/evaluations/` | List evaluations (paginated, filterable) |
+| `GET` | `/evaluations/summary` | Inbox counts (pending / reviewed) |
+| `GET` | `/evaluations/draft` | Get company's draft evaluation |
+| `POST` | `/evaluations/` | Create new evaluation |
+| `PATCH` | `/evaluations/{id}/status` | Submit evaluation (draft → submitted) |
+| `PATCH` | `/responses/{id}/verdict` | Expert issues verdict on a response |
+| `POST` | `/evaluations/{id}/finalize-review` | Expert finalizes review → triggers PDF |
+| `GET` | `/evaluations/{id}/report` | Download PDF report |
+| `POST` | `/evaluations/{id}/regenerate-report` | Retry failed PDF generation |
+
+> All `/evaluations/` paths require a trailing slash on list/create endpoints.
+
+
+## Enums
+
+```python
+EvaluationStatus: draft | submitted | reviewed
+ResponseVerdict:  complies | complies_with_observations | does_not_comply
+ReportStatus:     generating | ready | failed
+UserRole:         company_rep | expert
+```
+
+
+## PDF report generation
+
+When an expert finalizes a review:
+
+1. `finalize_review` sets status to `reviewed` and `report_status` to `generating`
+2. A background task renders `templates/report/evaluation_report.html` via Jinja2
+3. xhtml2pdf converts HTML to PDF and saves it in `data/reports/{evaluation_id}.pdf`
+4. `report_status` is updated to `ready` (or `failed` on error)
+
+The report includes a cover page (company info, compliance score, expert details) and a detail section with all control groups, company answers, observations, and expert verdicts.
+
 
 ## User roles
 
 | Role | Description |
 |------|-------------|
 | `company_rep` | Company representative. Registers and completes evaluations. |
-| `expert` | Cybersecurity expert. Assigned directly in the database. |
+| `expert` | Cybersecurity expert. Reviews submissions and finalizes evaluations. |
 
----
+Experts are assigned directly in the database.
+
+
+## Tests
+
+```bash
+python -m pytest
+```
+
 
 ## License
 
