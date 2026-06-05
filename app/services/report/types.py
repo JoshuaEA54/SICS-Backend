@@ -9,6 +9,7 @@ class ControlRow:
     verdict: str | None
     compliant: bool
     observations: str | None
+    expert_observations: str | None = None
 
 
 @dataclass
