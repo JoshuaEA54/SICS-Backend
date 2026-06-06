@@ -58,6 +58,7 @@ def build_report_context(
                 verdict=resp.verdict.value if resp and resp.verdict else None,
                 compliant=response_is_compliant(resp) if resp else False,
                 observations=resp.observations if resp else None,
+                expert_observations=resp.expert_observations if resp else None,
             ))
         if rows:
             groups.append(GroupData(
