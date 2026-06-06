@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -102,6 +103,21 @@ def create_evaluation(db: Session, data: EvaluationCreate) -> Evaluation:
 def update_last_group(db: Session, eval_id: uuid.UUID, last_group_id: str) -> Evaluation:
     evaluation = db.execute(select(Evaluation).where(Evaluation.id == eval_id)).scalar_one()
     evaluation.last_group_id = last_group_id
+    db.commit()
+    db.refresh(evaluation)
+    return evaluation
+
+
+def mark_report_email_sent(
+    db: Session,
+    eval_id: uuid.UUID,
+    *,
+    sent_at: datetime,
+    sent_to: list[str],
+) -> Evaluation:
+    evaluation = get_evaluation(db, eval_id)
+    evaluation.report_email_sent_at = sent_at
+    evaluation.report_email_sent_to = json.dumps(sorted(sent_to))
     db.commit()
     db.refresh(evaluation)
     return evaluation

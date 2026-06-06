@@ -26,6 +26,8 @@ class Evaluation(Base):
     report_path: Mapped[str | None] = mapped_column(Text, nullable=True)
     report_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     report_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    report_email_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    report_email_sent_to: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )

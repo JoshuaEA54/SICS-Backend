@@ -4,9 +4,10 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.core.enums import EvaluationStatus, ReportStatus
+from app.core.enums import EvaluationStatus, ReportStatus, UserRole
 from app.core.exceptions import BadRequestError
 from app.models.evaluation import Evaluation, Response
+from app.models.user import User
 from app.schemas.evaluation import EvaluationRead, ResponseVerdictUpdate, ReviewProgress
 from app.services import compliance
 from app.services.evaluation_access import (
@@ -23,13 +24,27 @@ def enrich_evaluation_read(
     db: Session,
     evaluation: Evaluation,
     *,
+    current_user: User | None = None,
     company_labels: tuple[str | None, str | None] | None = None,
 ) -> EvaluationRead:
     if company_labels is None:
         company_labels = crud.company.get_company_display_labels(db, evaluation.company_id)
     company_name, sector_name = company_labels
-    base = EvaluationRead.model_validate(evaluation).model_copy(
-        update={"company_name": company_name, "sector_name": sector_name}
+
+    base = EvaluationRead.model_validate(evaluation)
+    sent_to = base.report_email_sent_to
+    report_error = base.report_error
+    if current_user is not None and current_user.role == UserRole.company_rep:
+        sent_to = None
+        report_error = None
+
+    base = base.model_copy(
+        update={
+            "company_name": company_name,
+            "sector_name": sector_name,
+            "report_email_sent_to": sent_to,
+            "report_error": report_error,
+        }
     )
     responses = list_responses(db, evaluation.id)
 

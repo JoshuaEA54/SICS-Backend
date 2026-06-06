@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
+from app.core.enums import UserRole
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 
@@ -13,6 +14,15 @@ def get_user(db: Session, user_id: uuid.UUID) -> User:
 
 def get_user_by_email(db: Session, email: str) -> User | None:
     return db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+
+
+def get_company_rep_by_company_id(db: Session, company_id: uuid.UUID) -> User | None:
+    return db.execute(
+        select(User).where(
+            User.company_id == company_id,
+            User.role == UserRole.company_rep,
+        )
+    ).scalar_one_or_none()
 
 
 def get_users_query() -> Select:
