@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 from app.core.enums import EvaluationStatus, ReportStatus, ResponseVerdict
 
@@ -69,11 +69,30 @@ class ResponseRead(BaseModel):
     observations: str | None
     answered_at: datetime
     verdict: ResponseVerdict | None
+    expert_observations: str | None = None
     reviewed_at: datetime | None
 
 
 class ResponseVerdictUpdate(BaseModel):
     verdict: ResponseVerdict
+    expert_observations: str | None = Field(default=None, max_length=500)
+
+    @field_validator("expert_observations", mode="after")
+    @classmethod
+    def validate_expert_observations(
+        cls, value: str | None, info: ValidationInfo
+    ) -> str | None:
+        verdict: ResponseVerdict = info.data["verdict"]
+        has_obs = bool(value and value.strip())
+        if verdict == ResponseVerdict.complies and has_obs:
+            raise ValueError(
+                "No se admiten observaciones del experto cuando el veredicto es Cumple"
+            )
+        if verdict != ResponseVerdict.complies and not has_obs:
+            raise ValueError(
+                "Las observaciones del experto son obligatorias para este veredicto"
+            )
+        return value
 
 
 # ── Evidence ──────────────────────────────────────────────────────────────────

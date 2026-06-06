@@ -48,6 +48,7 @@ class Response(Base):
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
     verdict: Mapped[ResponseVerdict | None] = mapped_column(SAEnum(ResponseVerdict, native_enum=False, create_constraint=True, name="ck_responses_verdict"), nullable=True)
+    expert_observations: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 

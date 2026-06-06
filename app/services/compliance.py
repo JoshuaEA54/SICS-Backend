@@ -5,6 +5,10 @@ _COMPLIES_VERDICTS = frozenset(
     {ResponseVerdict.complies, ResponseVerdict.complies_with_observations}
 )
 
+VERDICTS_REQUIRING_EXPERT_OBSERVATIONS = frozenset(
+    {ResponseVerdict.complies_with_observations, ResponseVerdict.does_not_comply}
+)
+
 def response_is_compliant(response: Response) -> bool:
     if not response.answer:
         return False
@@ -27,3 +31,16 @@ def calculate_review_progress(responses: list[Response]) -> tuple[int, int]:
 
 def has_pending_verdicts(responses: list[Response]) -> bool:
     return any(r.answer and r.verdict is None for r in responses)
+
+
+def verdict_requires_expert_observations(verdict: ResponseVerdict | None) -> bool:
+    return verdict in VERDICTS_REQUIRING_EXPERT_OBSERVATIONS
+
+
+def has_missing_expert_observations(responses: list[Response]) -> bool:
+    return any(
+        r.answer
+        and verdict_requires_expert_observations(r.verdict)
+        and not (r.expert_observations and r.expert_observations.strip())
+        for r in responses
+    )

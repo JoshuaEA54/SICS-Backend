@@ -63,6 +63,7 @@ def update_response_verdict(
         )
 
     response.verdict = data.verdict
+    response.expert_observations = data.expert_observations
     response.reviewed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(response)
@@ -76,6 +77,10 @@ def finalize_review(db: Session, eval_id: uuid.UUID) -> Evaluation:
     if compliance.has_pending_verdicts(responses):
         raise BadRequestError(
             "Faltan veredictos en controles donde la empresa indicó que cumple"
+        )
+    if compliance.has_missing_expert_observations(responses):
+        raise BadRequestError(
+            "Faltan observaciones del experto en controles con veredicto que las requiere"
         )
 
     evaluation.status = EvaluationStatus.reviewed

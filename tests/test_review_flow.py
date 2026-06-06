@@ -6,14 +6,22 @@ import pytest
 
 from app.core.enums import EvaluationStatus, ReportStatus, ResponseVerdict
 from app.core.exceptions import BadRequestError
+from app.schemas.evaluation import ResponseVerdictUpdate
 from app.services import review as review_service
 
 
-def _response(*, answer: bool, verdict: ResponseVerdict | None = None, response_id=None):
+def _response(
+    *,
+    answer: bool,
+    verdict: ResponseVerdict | None = None,
+    expert_observations: str | None = None,
+    response_id=None,
+):
     return SimpleNamespace(
         id=response_id or uuid.uuid4(),
         answer=answer,
         verdict=verdict,
+        expert_observations=expert_observations,
         reviewed_at=None,
     )
 
@@ -39,7 +47,7 @@ class TestUpdateResponseVerdict:
             review_service.update_response_verdict(
                 MagicMock(),
                 response.id,
-                SimpleNamespace(verdict=ResponseVerdict.complies),
+                ResponseVerdictUpdate(verdict=ResponseVerdict.complies),
             )
 
     @patch('app.services.review.get_response_for_expert_verdict')
@@ -51,10 +59,14 @@ class TestUpdateResponseVerdict:
         review_service.update_response_verdict(
             db,
             response.id,
-            SimpleNamespace(verdict=ResponseVerdict.complies_with_observations),
+            ResponseVerdictUpdate(
+                verdict=ResponseVerdict.complies_with_observations,
+                expert_observations="Requiere seguimiento.",
+            ),
         )
 
         assert response.verdict == ResponseVerdict.complies_with_observations
+        assert response.expert_observations == "Requiere seguimiento."
         assert response.reviewed_at is not None
         db.commit.assert_called_once()
         db.refresh.assert_called_once_with(response)
@@ -81,7 +93,11 @@ class TestFinalizeReview:
         evaluation = _evaluation()
         mock_get_eval.return_value = evaluation
         mock_list.return_value = [
-            _response(answer=True, verdict=ResponseVerdict.complies),
+            _response(
+                answer=True,
+                verdict=ResponseVerdict.complies_with_observations,
+                expert_observations="Observación registrada.",
+            ),
             _response(answer=False),
         ]
 
