@@ -12,7 +12,7 @@ from email.mime.application import MIMEApplication
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import formataddr
+from email.utils import formataddr, make_msgid
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -104,6 +104,7 @@ def build_report_email_props(
     reviewed_at_fmt = reviewed_at.strftime("%d/%m/%Y") if reviewed_at else "N/D"
 
     return {
+        "evaluationId": str(evaluation.id),
         "companyName": company_name or "Empresa",
         "compliancePercentage": round(percentage, 1),
         "complianceLabel": band_cfg["label"],
@@ -185,6 +186,8 @@ def send_report_email(
     else:
         msg["From"] = formataddr(("SICS", settings.SMTP_USER))
     msg["To"] = ", ".join(recipients)
+    smtp_domain = settings.SMTP_USER.split("@")[-1] if "@" in settings.SMTP_USER else None
+    msg["Message-ID"] = make_msgid(domain=smtp_domain)
 
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
