@@ -20,10 +20,13 @@ from app.schemas.evaluation import (
     EvaluationRead,
     EvaluationStatusUpdate,
     EvidenceRead,
+    ReportRecipientsResponse,
     ResponseRead,
     ResponseUpsert,
     ResponseVerdictUpdate,
+    SendReportResponse,
 )
+from app.services import email as email_service
 from app.services import evaluation as evaluation_service
 from app.services import review as review_service
 from app.services.evaluation_access import (
@@ -68,6 +71,7 @@ def list_evaluations(
         review_service.enrich_evaluation_read(
             db,
             item,
+            current_user=current_user,
             company_labels=labels_map.get(item.company_id),
         )
         for item in page.items
@@ -97,7 +101,9 @@ def create_evaluation(
 ):
     if current_user.company_id != data.company_id:
         raise ForbiddenError("Solo puede crear evaluaciones para su empresa")
-    return review_service.enrich_evaluation_read(db, crud.evaluation.create_evaluation(db, data))
+    return review_service.enrich_evaluation_read(
+        db, crud.evaluation.create_evaluation(db, data), current_user=current_user
+    )
 
 
 @router.get("/draft", response_model=EvaluationRead | None)
@@ -110,7 +116,7 @@ def get_draft_evaluation(
     evaluation = crud.evaluation.get_draft_evaluation(db, current_user.company_id)
     if evaluation is None:
         return None
-    return review_service.enrich_evaluation_read(db, evaluation)
+    return review_service.enrich_evaluation_read(db, evaluation, current_user=current_user)
 
 
 @router.get("/{eval_id}", response_model=EvaluationRead)
@@ -120,7 +126,9 @@ def get_evaluation(
     current_user: User = Depends(get_current_user),
 ):
     return review_service.enrich_evaluation_read(
-        db, get_evaluation_for_read(db, eval_id, current_user)
+        db,
+        get_evaluation_for_read(db, eval_id, current_user),
+        current_user=current_user,
     )
 
 
@@ -147,7 +155,9 @@ def update_evaluation_status(
     if data.status != EvaluationStatus.submitted:
         raise BadRequestError("Solo se puede enviar la evaluación desde borrador")
     return review_service.enrich_evaluation_read(
-        db, crud.evaluation.update_evaluation_status(db, eval_id, data)
+        db,
+        crud.evaluation.update_evaluation_status(db, eval_id, data),
+        current_user=current_user,
     )
 
 
@@ -160,7 +170,9 @@ def update_last_group(
 ):
     get_evaluation_for_company_edit(db, eval_id, current_user)
     return review_service.enrich_evaluation_read(
-        db, crud.evaluation.update_last_group(db, eval_id, data.last_group_id)
+        db,
+        crud.evaluation.update_last_group(db, eval_id, data.last_group_id),
+        current_user=current_user,
     )
 
 
@@ -205,7 +217,28 @@ def regenerate_report(
     db.refresh(evaluation)
 
     background_tasks.add_task(generate_report_task, evaluation.id, current_expert.id)
-    return review_service.enrich_evaluation_read(db, evaluation)
+    return review_service.enrich_evaluation_read(db, evaluation, current_user=current_expert)
+
+
+@router.get("/{eval_id}/report-recipients", response_model=ReportRecipientsResponse)
+def get_report_recipients(
+    eval_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _expert: User = Depends(require_expert),
+):
+    evaluation = crud.evaluation.get_evaluation(db, eval_id)
+    recipients = email_service.get_report_recipients_response(db, evaluation)
+    return ReportRecipientsResponse(recipients=recipients)
+
+
+@router.post("/{eval_id}/send-report", response_model=SendReportResponse)
+def send_report(
+    eval_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_expert: User = Depends(require_expert),
+):
+    evaluation = crud.evaluation.get_evaluation(db, eval_id)
+    return email_service.send_evaluation_report(db, evaluation, current_expert)
 
 
 # ── Responses ─────────────────────────────────────────────────────────────────

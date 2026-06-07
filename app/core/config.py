@@ -32,6 +32,15 @@ class Settings(BaseSettings):
 
 	CORS_ORIGINS: list[str] = []
 
+	SMTP_HOST: str = ""
+	SMTP_PORT: int = 587
+	SMTP_USER: str = ""
+	SMTP_PASSWORD: str = ""
+	SMTP_FROM: str = ""
+	SMTP_USE_TLS: bool = True
+	FRONTEND_URL: str = "http://localhost:5173"
+	FRONTEND_DIR: str = "../frontend"
+
 	MAX_UPLOAD_SIZE_MB: int = 25
 	ALLOWED_MIME_TYPES: frozenset[str] = frozenset([
 		"application/pdf",

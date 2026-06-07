@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime
 
@@ -36,6 +37,21 @@ class EvaluationRead(BaseModel):
     report_status: ReportStatus | None = None
     report_generated_at: datetime | None = None
     report_error: str | None = None
+    report_email_sent_at: datetime | None = None
+    report_email_sent_to: list[str] | None = None
+
+    @field_validator("report_email_sent_to", mode="before")
+    @classmethod
+    def parse_report_email_sent_to(cls, value: object) -> list[str] | None:
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+            except json.JSONDecodeError:
+                return None
+            if isinstance(parsed, list):
+                return [str(item) for item in parsed]
+            return None
+        return value  # type: ignore[return-value]
 
 
 class EvaluationStatusUpdate(BaseModel):
@@ -49,6 +65,20 @@ class EvaluationLastGroupUpdate(BaseModel):
 class EvaluationInboxSummary(BaseModel):
     pending: int
     reviewed: int
+
+
+class ReportRecipientItem(BaseModel):
+    email: str
+    label: str
+
+
+class ReportRecipientsResponse(BaseModel):
+    recipients: list[ReportRecipientItem]
+
+
+class SendReportResponse(BaseModel):
+    sent_at: datetime
+    sent_to: list[str]
 
 
 # ── Response ──────────────────────────────────────────────────────────────────

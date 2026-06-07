@@ -3,7 +3,7 @@ from pathlib import Path
 _APP_DIR = Path(__file__).resolve().parent.parent.parent
 
 TEMPLATE_DIR = _APP_DIR / "templates" / "report"
-LOGO_PATH = _APP_DIR / "static" / "report" / "logo.png"
+LOGO_PATH = _APP_DIR / "static" / "logo.png"
 
 BAND_CONFIG = {
     "red": {

@@ -30,6 +30,8 @@ def _evaluation(
         report_status=report_status,
         report_path=report_path,
         report_error=None,
+        report_email_sent_at=None,
+        report_email_sent_to=None,
         report_generated_at=None,
         reviewed_at=reviewed_at or datetime(2026, 5, 24, tzinfo=timezone.utc),
         submitted_at=datetime(2026, 5, 20, tzinfo=timezone.utc),

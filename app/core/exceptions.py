@@ -39,3 +39,7 @@ class ForbiddenError(AppError):
 
 class BadRequestError(AppError):
     status_code = HTTPStatus.BAD_REQUEST
+
+
+class ServiceUnavailableError(AppError):
+    status_code = HTTPStatus.BAD_GATEWAY
