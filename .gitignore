@@ -1,7 +1,6 @@
 /.env
 /.env.*
 /.venv
-/dbml.txt
 /data/
 __pycache__/
 *.pyc

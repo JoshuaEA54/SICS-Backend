@@ -1,0 +1,213 @@
+// ============================================================
+// SICS — Sistema Integrado de Cumplimiento en Seguridad
+// Diseño de base de datos — DBML — Tercera Forma Normal (3FN)
+// ============================================================
+
+
+// ─────────────────────────────────────────────
+// GEOGRAFÍA — Costa Rica
+// ─────────────────────────────────────────────
+
+Table provinces {
+  id    smallint    [pk, increment, note: 'Identificador de la provincia.']
+  name  varchar(60) [not null, unique, note: 'Nombre oficial. Ej: San José, Alajuela, Cartago.']
+
+  Note: 'Provincias de Costa Rica usadas para ubicar la sede de la empresa en el registro.'
+}
+
+Table cantons {
+  id          smallint    [pk, increment, note: 'Identificador del cantón.']
+  name        varchar(80) [not null, note: 'Nombre del cantón. Ej: Escazú, Central.']
+  province_id smallint    [not null, ref: > provinces.id, note: 'Provincia a la que pertenece el cantón.']
+
+  indexes {
+    (name, province_id) [unique]
+  }
+
+  Note: 'Cantones costarricenses; segundo nivel del selector geográfico en el registro.'
+}
+
+Table districts {
+  id        smallint    [pk, increment, note: 'Identificador del distrito.']
+  name      varchar(80) [not null, note: 'Nombre del distrito. Ej: Carmen, San Rafael.']
+  canton_id smallint    [not null, ref: > cantons.id, note: 'Cantón al que pertenece el distrito.']
+
+  indexes {
+    (name, canton_id) [unique]
+  }
+
+  Note: 'Distritos costarricenses; tercer nivel del selector geográfico. La empresa guarda el distrito de su sede central.'
+}
+
+
+// ─────────────────────────────────────────────
+// CATÁLOGOS DE EMPRESA
+// ─────────────────────────────────────────────
+
+Table sectors {
+  id   smallint     [pk, increment, note: 'Identificador del sector.']
+  name varchar(100) [not null, unique, note: 'Nombre del sector. Ej: Banca y Finanzas, Educación, Salud, Tecnología e Innovación.']
+
+  Note: 'Sectores económicos para clasificar empresas y filtrar evaluaciones en el panel del experto.'
+}
+
+Table employee_ranges {
+  id    smallint    [pk, increment, note: 'Identificador del rango.']
+  label varchar(20) [not null, unique, note: 'Texto mostrado al usuario. Ej: 1-10, 11-50, 51-100, 101-200, 201-500, 501-1000, 1001-5000, Más de 5000.']
+
+  Note: 'Rangos de cantidad de empleados que indican el tamaño aproximado de la organización.'
+}
+
+
+// ─────────────────────────────────────────────
+// EMPRESAS
+// ─────────────────────────────────────────────
+
+Table companies {
+  id                uuid         [pk, default: `gen_random_uuid()`, note: 'Identificador de la empresa.']
+  name              varchar(200) [not null, unique, note: 'Razón social o nombre comercial. Ej: Acme Costa Rica S.A.']
+  sector_id         smallint     [not null, ref: > sectors.id, note: 'Sector económico seleccionado en el registro.']
+  employee_range_id smallint     [not null, ref: > employee_ranges.id, note: 'Rango de empleados seleccionado en el registro.']
+  district_id       smallint     [not null, ref: > districts.id, note: 'Distrito donde está la sede central.']
+  branch_count      smallint     [not null, default: 0, note: 'Cantidad de sucursales adicionales a la sede central; 0 significa que no tiene sucursales.']
+  created_at        timestamptz  [not null, default: `now()`, note: 'Fecha y hora en que se registró la empresa.']
+
+  Note: 'Organización evaluada en SICS. Se crea en el paso 1 del registro y concentra contactos, evaluaciones y su representante en el sistema.'
+}
+
+
+// ─────────────────────────────────────────────
+// USUARIOS (autenticados con Google)
+// ─────────────────────────────────────────────
+
+Table users {
+  id         uuid         [pk, default: `gen_random_uuid()`, note: 'Identificador del usuario.']
+  name       varchar(200) [not null, note: 'Nombre visible del usuario. Proviene de Google y puede editarse en el registro paso 2.']
+  email      varchar(200) [not null, unique, note: 'Correo de Google usado para iniciar sesión. Ej: maria.garcia@empresa.cr.']
+  job_title  varchar(150) [note: 'Puesto del responsable dentro de la empresa. Ej: Gerente de TI, Oficial de Seguridad de la Información.']
+  role       varchar(20)  [not null, note: 'Representante de la empresa que responde el cuestionario, o experto que revisa y emite el informe.']
+  company_id uuid         [ref: > companies.id, note: 'Empresa que representa el usuario; solo aplica a company_rep.']
+  created_at timestamptz  [not null, default: `now()`, note: 'Fecha y hora de creación de la cuenta.']
+
+  indexes {
+    company_id [unique]
+  }
+
+  Note: 'Personas que ingresan al sistema con Google: el responsable de la empresa o el experto. Puede haber varios expertos; no es una sola cuenta compartida por diseño de rol.'
+}
+
+
+// ─────────────────────────────────────────────
+// CONTACTOS ADICIONALES DE LA EMPRESA
+// ─────────────────────────────────────────────
+
+Table contacts {
+  id         uuid         [pk, default: `gen_random_uuid()`, note: 'Identificador del contacto.']
+  company_id uuid         [not null, ref: > companies.id, note: 'Empresa a la que pertenece el contacto.']
+  name       varchar(200) [not null, note: 'Nombre de la persona. Ej: Juan Pérez.']
+  email      varchar(200) [not null, note: 'Correo donde puede recibir copia del informe.']
+  job_title  varchar(150) [note: 'Cargo del contacto.']
+  created_at timestamptz  [not null, default: `now()`, note: 'Fecha y hora en que se agregó el contacto.']
+
+  Note: 'Personas adicionales de la empresa que reciben el informe por correo. No tienen cuenta ni acceso al sistema.'
+}
+
+
+// ─────────────────────────────────────────────
+// CATÁLOGO DE CONTROLES (seed data desde xlsx)
+// ─────────────────────────────────────────────
+
+Table control_groups {
+  id          varchar(10)  [pk, note: 'Código del grupo. Ej: G01 … G16.']
+  name        varchar(200) [not null, note: 'Título del grupo. Ej: Gobierno y gestión de la seguridad.']
+  description text         [note: 'Descripción del alcance del grupo de controles.']
+  criticality varchar(10)  [note: 'Nivel de prioridad: high, medium o low.']
+
+  Note: 'Los grupos temáticos del marco de controles. Organizan la navegación del cuestionario y la revisión del experto.'
+}
+
+Table controls {
+  id          varchar(20)  [pk, note: 'Código del control. Ej: CC-GOV-01, CC-RISK-02.']
+  group_id    varchar(10)  [not null, ref: > control_groups.id, note: 'Grupo temático al que pertenece el control.']
+  name        varchar(200) [not null, note: 'Nombre del control. Ej: Política de seguridad de la información.']
+  description text         [note: 'Enunciado o criterio que la empresa evalúa en el cuestionario.']
+
+  Note: 'Los controles concretos que la empresa responde en cada evaluación de cumplimiento.'
+}
+
+Table standards {
+  id   serial      [pk, note: 'Identificador del estándar.']
+  name varchar(20)  [not null, unique, note: 'Nombre del marco normativo. Ej: ISO27001, ISO27002_2022, ISO27005, ISO27701, NIST_CSF_v1.1, LEY8968_CR.']
+
+  Note: 'Marcos normativos de referencia (ISO, NIST, Ley 8968) citados por los controles.'
+}
+
+Table control_standard_refs {
+  id          serial       [pk, note: 'Identificador de la referencia.']
+  control_id  varchar(20)  [not null, ref: > controls.id, note: 'Control al que aplica la cita normativa.']
+  standard_id integer      [not null, ref: > standards.id, note: 'Estándar citado.']
+  ref_code    varchar(100) [not null, note: 'Código de cláusula dentro del estándar. Ej: 5.2, A.5.1.1, ID.GV-1, Art.10.']
+
+  indexes {
+    (control_id, standard_id, ref_code) [unique]
+  }
+
+  Note: 'Relaciona cada control con los estándares que lo respaldan y el código de cláusula concreto. Se muestra como badges en el cuestionario.'
+}
+
+
+// ─────────────────────────────────────────────
+// EVALUACIONES
+// ─────────────────────────────────────────────
+
+Table evaluations {
+  id                   uuid        [pk, default: `gen_random_uuid()`, note: 'Identificador de la evaluación.']
+  company_id           uuid        [not null, ref: > companies.id, note: 'Empresa que realiza la evaluación.']
+  status               varchar(20) [not null, default: 'draft', note: 'Estado del flujo: draft (borrador), submitted (enviada al experto) o reviewed (revisión finalizada).']
+  last_group_id        varchar(10) [ref: > control_groups.id, note: 'Último grupo de controles visitado; guarda el progreso en el cuestionario.']
+  submitted_at         timestamptz [note: 'Momento en que la empresa envió la evaluación al experto.']
+  reviewed_at          timestamptz [note: 'Momento en que el experto cerró la revisión.']
+  report_status        varchar(20) [note: 'Estado del informe PDF: generating, ready o failed.']
+  report_path          text        [note: 'Ubicación del PDF generado en el servidor. Ej: data/reports/{id}.pdf.']
+  report_generated_at  timestamptz [note: 'Momento en que el informe PDF quedó listo.']
+  report_error         text        [note: 'Detalle breve del error si falló la generación del informe.']
+  report_email_sent_at timestamptz [note: 'Momento del envío del informe por correo.']
+  report_email_sent_to text        [note: 'Lista de correos del envío del informe. Ej: ["rep@empresa.cr","contacto@empresa.cr"].']
+  created_at           timestamptz [not null, default: `now()`, note: 'Fecha y hora de creación de la evaluación.']
+
+  Note: 'Cada evaluación mide el cumplimiento de una empresa frente al catálogo de controles. Avanza de borrador a enviada y luego a revisada; el porcentaje de cumplimiento se calcula al consultar las respuestas.'
+}
+
+
+// ─────────────────────────────────────────────
+// RESPUESTAS DE LA EMPRESA Y VEREDICTO DEL EXPERTO
+// ─────────────────────────────────────────────
+
+Table responses {
+  id                  uuid        [pk, default: `gen_random_uuid()`, note: 'Identificador de la respuesta.']
+  evaluation_id       uuid        [not null, ref: > evaluations.id, note: 'Evaluación a la que pertenece.']
+  control_id          varchar(20) [not null, ref: > controls.id, note: 'Control respondido. Ej: CC-GOV-01.']
+  answer              boolean     [not null, note: 'Respuesta de la empresa: true = Sí cumple, false = No cumple.']
+  observations        text        [note: 'Comentario opcional de la empresa sobre ese control.']
+  answered_at         timestamptz [not null, default: `now()`, note: 'Momento de la última respuesta o actualización por la empresa.']
+  verdict             varchar(40) [note: 'Veredicto del experto: complies, complies_with_observations o does_not_comply. Solo aplica cuando la empresa indicó que cumple.']
+  expert_observations text        [note: 'Comentario del experto; requerido cuando el veredicto no es cumple pleno.']
+  reviewed_at         timestamptz [note: 'Momento en que el experto emitió el veredicto.']
+
+  indexes {
+    (evaluation_id, control_id) [unique]
+  }
+
+  Note: 'Respuesta de la empresa a un control concreto y, tras el envío, el veredicto del experto sobre la misma fila.'
+}
+
+Table evidence {
+  id          uuid         [pk, default: `gen_random_uuid()`, note: 'Identificador del archivo.']
+  response_id uuid         [not null, ref: > responses.id, note: 'Respuesta a la que se adjunta la evidencia.']
+  file_path   text         [not null, note: 'Ruta del archivo en el servidor. Ej: data/uploads/{response_id}/politica-seguridad.pdf.']
+  file_name   varchar(300) [not null, note: 'Nombre del archivo subido. Ej: politica-seguridad.pdf.']
+  file_type   varchar(100) [note: 'Tipo de archivo. Ej: application/pdf, image/png.']
+  created_at  timestamptz  [not null, default: `now()`, note: 'Momento en que se subió el archivo.']
+
+  Note: 'Documentos de soporte que la empresa adjunta cuando declara que cumple un control. Puede haber varios archivos por respuesta.'
+}
