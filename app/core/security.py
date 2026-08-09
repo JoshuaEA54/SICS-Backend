@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta, timezone
 
 from google.auth.transport import requests as google_requests
@@ -7,16 +8,26 @@ from jose import jwt
 from app.core.config import settings
 from app.core.enums import AuthFlow
 
+logger = logging.getLogger(__name__)
+
 _ACCESS = "access"
 _REFRESH = "refresh"
 
 
+_CLOCK_SKEW_SECONDS = 10
+
+
 def verify_google_token(token: str) -> dict:
-    return id_token.verify_oauth2_token(
-        token,
-        google_requests.Request(),
-        settings.GOOGLE_CLIENT_ID,
-    )
+    try:
+        return id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=_CLOCK_SKEW_SECONDS,
+        )
+    except ValueError as exc:
+        logger.warning("Google token verification failed: %s", exc)
+        raise
 
 
 def create_access_token(sub: str, flow: AuthFlow, name: str | None = None) -> str:
