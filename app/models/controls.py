@@ -11,7 +11,11 @@ class ControlGroup(Base):
     id: Mapped[str] = mapped_column(String(10), primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    criticality: Mapped[ControlCriticality | None] = mapped_column(SAEnum(ControlCriticality, native_enum=False, create_constraint=True, name="ck_control_groups_criticality"), nullable=True)
+    criticality: Mapped[ControlCriticality] = mapped_column(
+        SAEnum(ControlCriticality, native_enum=False, create_constraint=True, name="ck_control_groups_criticality"),
+        nullable=False,
+        server_default=ControlCriticality.low.value,
+    )
 
 
 class Control(Base):

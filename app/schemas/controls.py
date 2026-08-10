@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.enums import ControlCriticality
 
@@ -6,16 +6,16 @@ from app.core.enums import ControlCriticality
 # ── Control Groups ────────────────────────────────────────────────────────────
 
 class ControlGroupCreate(BaseModel):
-    id: str  # Ej: "G01" — se provee manualmente
-    name: str
-    description: str | None = None
-    criticality: ControlCriticality | None = None
+    id: str = Field(max_length=10)  # Ej: "G01" — se provee manualmente
+    name: str = Field(max_length=200)
+    description: str | None = Field(default=None, max_length=1000)
+    criticality: ControlCriticality = ControlCriticality.low
 
 
 class ControlGroupUpdate(BaseModel):
-    name: str
-    description: str | None = None
-    criticality: ControlCriticality | None = None
+    name: str = Field(max_length=200)
+    description: str | None = Field(default=None, max_length=1000)
+    criticality: ControlCriticality = ControlCriticality.low
 
 
 class ControlGroupRead(BaseModel):
@@ -24,7 +24,7 @@ class ControlGroupRead(BaseModel):
     id: str
     name: str
     description: str | None
-    criticality: ControlCriticality | None
+    criticality: ControlCriticality
 
 
 # ── Controls ──────────────────────────────────────────────────────────────────
