@@ -1,4 +1,4 @@
-from sqlalchemy import Select, select
+from sqlalchemy import Select, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.controls import Control, ControlGroup, ControlStandardRef, Standard
@@ -15,8 +15,11 @@ from app.schemas.controls import (
 
 # ── ControlGroup ──────────────────────────────────────────────────────────────
 
-def get_control_groups_query() -> Select:
-    return select(ControlGroup).order_by(ControlGroup.id)
+def get_control_groups_query(q: str | None = None) -> Select:
+    stmt = select(ControlGroup).order_by(ControlGroup.id)
+    if q:
+        stmt = stmt.where(or_(ControlGroup.name.ilike(f"%{q}%"), ControlGroup.id.ilike(f"%{q}%")))
+    return stmt
 
 
 def get_control_group(db: Session, group_id: str) -> ControlGroup:

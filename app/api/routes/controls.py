@@ -33,8 +33,8 @@ def list_control_groups_full(db: Session = Depends(get_db)):
 
 
 @router.get("/groups", response_model=Page[ControlGroupRead])
-def list_control_groups(db: Session = Depends(get_db)):
-    return paginate(db, crud.controls.get_control_groups_query())
+def list_control_groups(q: str | None = None, db: Session = Depends(get_db)):
+    return paginate(db, crud.controls.get_control_groups_query(q=q.strip() if q else None))
 
 
 @router.post("/groups", response_model=ControlGroupRead, status_code=HTTPStatus.CREATED)
